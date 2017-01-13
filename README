@@ -1,0 +1,29 @@
+*** Szczegóły kompilacji i uruchamiania programu:
+
+make zrobiony w korzeniu projektu kompiluje wszystkie zamieszczone pliki i tworzy 
+kompilator latc_x86. Po ruchomieniu latc_x86 z plikiem .lat tworzony jest kod 
+asemblerowy x86 w składni nasmowej. Zapisywany jest on do pliku .asm, 
+który następnie przy pomocy gcc jest kompilowany do pliku wykonywalnego.
+
+*** Używane narzędzia i biblioteki:
+
+-> język: haskell
+-> biblioteki: System.Environment
+               System.IO
+               System.FilePath.Posix
+               System.Cmd
+   do uruchamiania bashowych poleceń
+
+*** Zaimplementowane rozszerzenia: brak
+
+*** Struktura katalogów projektu:
+
+--> README
+--> Makefile
+--> \src
+        --> Main.hs     (łączy bnfc z backendem i komiluje asma do pliku wykonywalnego)
+        --> Compiler.hs (część główna kodu)
+        --> Latte.cf    (gramatyka bnfc)
+    
+
+*** Ewentualnie odnośniki do bardziej szczegółowej dokumentacji: brak
