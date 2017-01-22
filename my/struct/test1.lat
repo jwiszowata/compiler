@@ -1,0 +1,33 @@
+class A {}
+
+void assert(boolean b) {
+    if (!b)
+        printString("fail");
+}
+
+int main() {
+    A a, b;
+    assert(a == a);
+    assert(a == (A)null);
+    assert(a == b);
+
+    a = (A)null;
+    assert(a == a);
+    assert(a == (A)null);
+    assert(a == b);
+
+    a = new A;
+    assert(a == a);
+    assert(a != b);
+
+    b = new A;
+    assert(a != b);
+
+    a = (A)null;
+    assert(a != b);
+
+    b = (A)null;
+    assert(a == b);
+
+    return 0;
+}

@@ -1,0 +1,33 @@
+void assert(boolean b) {
+    if (!b)
+        printString("fail");
+}
+
+int main() {
+    int[] a = new int[3];
+    a[0] = 5;
+    a[1] = 10;
+    a[2] = 15;
+    assert(a.length == 3);
+    assert(a[0] == 5);
+    assert(a[1] == 10);
+    assert(a[2] == 15);
+
+    a[1] = 9;
+    assert(a[0] == 5);
+    assert(a[1] == 9);
+    assert(a[2] == 15);
+
+    int[] b = a;
+    assert(b.length == 3);
+    assert(b[0] == 5);
+    assert(b[1] == 9);
+    assert(b[2] == 15);
+
+    b[2] = 12;
+    assert(a.length == 3);
+    assert(a[0] == 5);
+    assert(a[1] == 9);
+    assert(a[2] == 12);
+    return 0;
+}

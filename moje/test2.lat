@@ -1,0 +1,21 @@
+int inc(int a) {
+	a++;
+	return a;
+}
+
+int dec(int a) {
+	a--;
+	return a;
+}
+
+int main() {
+	;;;
+	int b = inc(3);
+	printInt(inc(3));
+	printInt(b);
+	printInt(inc(b));
+	printInt(dec(b));
+	b = dec(6);
+	printInt(b);
+	return 0;
+}

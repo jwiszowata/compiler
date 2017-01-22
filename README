@@ -12,7 +12,10 @@ który następnie przy pomocy gcc jest kompilowany do pliku wykonywalnego.
                System.IO
                System.FilePath.Posix
                System.Cmd
+               System.Exit
    do uruchamiania bashowych poleceń
+
+-> parser: bnfc
 
 *** Zaimplementowane rozszerzenia: brak
 
@@ -21,9 +24,14 @@ który następnie przy pomocy gcc jest kompilowany do pliku wykonywalnego.
 --> README
 --> Makefile
 --> \src
-        --> Main.hs     (łączy bnfc z backendem i komiluje asma do pliku wykonywalnego)
-        --> Compiler.hs (część główna kodu)
-        --> Latte.cf    (gramatyka bnfc)
+        --> Main.hs             (łączy bnfc z backendem i komiluje asma do pliku wykonywalnego)
+        --> Compiler.hs         (część główna kodu)
+        --> DataAndTypes.hs     (typy danych)
+        --> DefaultFunctions.hs (funkcje domyślne, printInt itp.)
+        --> Errors.hs           (funkcje dla błędów)
+        --> ExprCompilation.hs  (kompilacja wyrażeń)
+        --> Utils.hs            (funkcje pomocnicze)
+        --> Latte.cf            (gramatyka w bnfc)
     
 
 *** Ewentualnie odnośniki do bardziej szczegółowej dokumentacji: brak

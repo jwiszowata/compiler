@@ -1,0 +1,50 @@
+class A {
+    int [] b;
+}
+
+class C {
+    A d;
+    A [] e;
+}
+
+int main() {
+    A x = new A;
+    x.b = new int[2];
+    x.b[0] = 1;
+    x.b[1] = 2;
+
+    C y = new C;
+    y.d = x;
+    y.e = new A[3];
+    y.e[0] = x;
+    y.e[1] = x;
+    y.e[2] = x;
+
+    for (int z : x.b) {
+        printInt(z);
+    }
+
+    printString("done");
+
+    for (int w : y.d.b) {
+        printInt(w);
+    }
+
+    printString("done");
+
+    for (int v : y.e[1].b) {
+        printInt(v);
+    }
+
+    int [] [] g = new int [] [2];
+    int [] h = new int[1];
+    h[0] = 4;
+    g [0] = h;
+    g [1] = h;
+
+    for (int i : g[0]) {
+        printInt(i);
+    }
+
+    return 0;
+}

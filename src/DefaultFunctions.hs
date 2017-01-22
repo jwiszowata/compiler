@@ -1,7 +1,8 @@
-module DefaultFunctions(pushDefaults, pushDefaultFuns, concatStringsStr) where
+module DefaultFunctions(pushDefaults, pushDefaultFuns) where
 
 import AbsLatte
 import DataAndTypes
+import Utils
 
 pushDefaults :: StrObjs -> [String]
 pushDefaults so = pushPreamble ++ (addStrings so []) ++ printIntStr ++ 
@@ -9,13 +10,14 @@ pushDefaults so = pushPreamble ++ (addStrings so []) ++ printIntStr ++
 
 pushPreamble :: [String]
 pushPreamble = ["global main",
-                "extern printf, malloc, strcpy, strncat, strlen, scanf, exit",
+                "extern printf, malloc, strcpy, strncat, strlen, scanf, exit, memset",
                 "section .data",
                 "msgInt: db \"%d\", 10, 0",
                 "msgStr: db \"%s\", 10, 0",
                 "msgErr: db \"runtime error\", 10, 0",
                 "msgReadInt: db \"%d\", 0",
-                "msgReadStr: db \"%s\", 0"]
+                "msgReadStr: db \"%s\", 0",
+                "emptyStr: db \"\", 0"]
                 
 
 addStrings :: StrObjs -> [String] -> [String]
@@ -23,7 +25,21 @@ addStrings [] str = str ++ ["section .text"]
 addStrings (so:sos) str = addStrings sos (addString so str)
 
 addString :: StrObj -> [String] -> [String]
-addString (s, i) str = ("str" ++ show i ++ ": db " ++ show s ++ ", 0"):str
+addString (s, i) str = ("str" ++ show i ++ ": db \"" ++ showStr s ++ "\", 0"):str
+
+showStr :: String -> String
+showStr s = reverse (showStri s "")
+
+showStri :: String -> String -> String
+showStri [] res = res
+showStri (s:ss) res
+  | '\"' == s = let r = "\",\'\"\',\""
+                in showStri ss (r ++ res)
+  | '\n' == s = let r = "\",01 ,\""
+                in showStri ss (r ++ res)
+  | '\'' == s = let r = "\",\"\'\",\""
+                in showStri ss (r ++ res)
+  | otherwise = showStri ss (s:res)
 
 printIntStr :: [String]
 printIntStr = ["printInt:",
@@ -95,37 +111,6 @@ readStringStr = ["readString:",
                  "pop eax",
                  "leave",
                  "ret"]
-
-concatStringsStr :: String -> [String]
-concatStringsStr reg = ["push eax",     -- a
-                        "push " ++ reg, -- b, a
-                        "push eax",     -- a, b, a
-                        "call strlen",
-                        "add esp, 4",   -- b, a;  eax = len a
-                        "pop ecx",      -- a;     eax = len a, ecx = b
-                        "push eax",     -- len a, a
-                        "push ecx",     -- b, len a, a
-                        "push ecx",     -- b, b, len a, a
-                        "call strlen",
-                        "add esp, 4",   -- b, len a, a;   eax = len b
-                        "pop ecx",      -- len a, a;   eax = len b, ecx = b
-                        "pop edx",      -- a;   eax = len b, ecx = b, edx = len a
-                        "pop edi",       -- ; eax = len b, ecx = b, edx = len a, edi = a
-                        "push eax",     -- len b
-                        "push ecx",     -- b, len b
-                        "push edi",     -- a, b, len b
-                        "add edx, eax",
-                        "inc edx",
-                        "push edx",     -- len a + len b + 1, a, b, len b
-                        "call malloc",
-                        "add esp, 4",   -- a, b, len b;    eax = *x
-                        "push eax",     -- x, a, b, len b
-                        "call strcpy",
-                        "add esp, 8",   -- b, len b; eax = *x
-                        "push eax",     -- x, b, len b;
-                        "call strncat",
-                        "add esp, 12",  -- ; eax = *x
-                        "push eax"]     -- *x;
                  
 pushDefaultFuns :: Funs
 pushDefaultFuns = let arg1 = (Int, Ident "arg1", EmptyPos)

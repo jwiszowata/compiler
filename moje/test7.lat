@@ -1,0 +1,12 @@
+int main() {
+	false && retTrue(100);
+	true && retTrue(200);
+	false || retTrue(300);
+	true || retTrue(400);
+	return 0;
+}
+
+boolean retTrue(int i) {
+	printInt(i);
+	return true;
+}

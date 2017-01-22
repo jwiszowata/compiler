@@ -1,0 +1,11 @@
+int main() {
+    int[] a = new int[2];
+    int[] b = new int[2];
+
+    for (int c : a) {
+        for (int d : b) {
+            printInt(c + d);
+        }
+    }
+    return 0;
+}

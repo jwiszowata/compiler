@@ -1,0 +1,4 @@
+int main() {
+	printString("dzialam!");
+	return 0;
+}

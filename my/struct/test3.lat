@@ -1,0 +1,40 @@
+class A {
+    int x;
+}
+
+void assert(boolean b) {
+    if (!b)
+        printString("fail");
+}
+
+int inc(A a) {
+    a.x++;
+    return a.x;
+}
+
+A inc2(A a) {
+    a.x++;
+    return a;
+}
+
+int main() {
+    A a;
+    
+    assert(a == (A)null);
+    assert(new A != (A)null);
+    assert((new A).x == 0);
+
+    a = new A;
+    inc(a);
+    assert(a.x == 1);
+    assert(inc(a) == 2);
+    assert(a.x == 2);
+
+    assert(inc(new A) == 1);
+
+    assert(inc2(inc2(inc2(a))).x == 5);
+
+    assert(inc2(inc2(inc2(new A))).x == 3);
+    assert(inc2(inc2(inc2(new A))).x == 3);
+    return 0;
+}

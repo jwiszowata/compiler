@@ -1,0 +1,33 @@
+int main() {
+	int[] a;
+	a = new int[2];
+    for (int x : a) {
+		printInt(x);
+	}
+	int[] b = new int[3];
+	for (int x : b) {
+		printInt(x);
+	}
+	a[1] = 1;
+	b[1] = 2;
+	printInt(a[1]);
+	printInt(b[1]);
+	printInt(a[1] + b[a[1]]);
+	printInt(a.length);
+	printInt(b.length);
+	for (int x : a) {
+		printInt(x);
+	}
+	for (int x : b) {
+		printInt(x);
+	}
+	b = fun(b, a);
+	for (int x : b) {
+		printInt(x);
+	}
+	return 0;
+}
+
+int[] fun(int[] a, int[] b) {
+	return b;
+}

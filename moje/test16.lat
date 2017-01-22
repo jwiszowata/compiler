@@ -1,0 +1,19 @@
+class towar {
+	int cena;
+	int ilosc;
+}
+
+class sklep {
+	towar[] towary;
+}
+
+int main() {
+	sklep sklep = new sklep;
+	sklep.towary = new towar[3];
+	sklep.towary[0] = new towar;
+	sklep.towary[0].cena = 10;
+	sklep.towary[0].ilosc = 2;
+	printInt(sklep.towary[0].cena);
+	printInt(sklep.towary[0].ilosc);
+	return 0;
+}

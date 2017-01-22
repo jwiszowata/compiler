@@ -1,0 +1,18 @@
+int main() {
+	int a = -5, b, c;
+	printInt(a);
+	if (a >= -20) {
+		a = a * a;
+	}
+	printInt(a);
+	b = a / 4;
+	c = a / 3;
+	printInt(b);
+	printInt(c);
+	printInt(c % b);
+	printInt(b % c);
+	if (b != c) {
+		printInt(100);
+	}
+	return 0;
+}

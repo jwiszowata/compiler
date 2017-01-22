@@ -1,0 +1,15 @@
+int main() {
+	int a, b, c;
+	printInt(a);
+	printInt(b);
+	printInt(c);
+	a = 3;
+	b = 4;
+	c = a + b;
+	printInt(a);
+	printInt(b);
+	printInt(c);
+	int d = c - b;
+	printInt(d);
+	return 10;
+}

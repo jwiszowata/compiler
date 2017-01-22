@@ -1,0 +1,5 @@
+int main() {
+	string s = "To be", s1 = " or not to be";
+	printString(s + s1);
+	return 0;
+}

@@ -1,0 +1,23 @@
+int main() {
+	boolean b = false, k = true;
+	printBool(b);
+	if (true) {
+		printBool(b);
+		boolean b = true;
+		printBool(b);
+	}
+	printBool(b);
+	return 0;
+}
+
+void printBool(boolean b) {
+	if (b) {
+		print(1);
+	} else {
+		print(0);
+	}
+}
+
+void print(int c) {
+	printInt(c);
+}

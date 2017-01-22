@@ -1,0 +1,23 @@
+int main() {
+	int i = 0;
+	boolean d = true, k;
+	printBool(d);
+	printBool(k);
+	while (i <= 5) {
+		i++;
+		printInt(i);
+	}
+	printBool(d && k);
+	printBool(d || k);
+	printBool(!d);
+	printBool(!k);
+	return 0;
+}
+
+void printBool(boolean k) {
+	if (k) {
+		printInt(1);
+	} else {
+		printInt(0);
+	}
+}

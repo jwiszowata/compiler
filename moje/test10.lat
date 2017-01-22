@@ -1,0 +1,11 @@
+int main() {
+	string s = "ala";
+	//readStr();
+	int i;
+	i = 10;
+	//readInt();
+	printString(s);
+	printInt(i);
+	error();
+	return 0;
+}

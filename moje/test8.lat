@@ -1,0 +1,6 @@
+int main() {
+	string s = "ala ma kota";
+	printString(s);
+	printString("udalo sie!");
+	return 0;
+}

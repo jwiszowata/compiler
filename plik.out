@@ -1,0 +1,208 @@
+W bieżącym katalogu powinien być ten plik (skrypt) i archiwum latte.tgz
+/home/joanna/Publiczny/studia/IVrok/MRJP/zadanie2/better/joanna_wiszowata/kompilatoreg
+razem 172
+drwxr-xr-x 2 joanna joanna  4096 sty 14 23:11 ą ć
+-rw-r--r-- 1 joanna joanna     0 sty 10 13:04 latres
+drwxr-xr-x 5 joanna joanna  4096 paź 11  2011 lattests
+-rw-r--r-- 1 joanna joanna 10924 sty 14 23:14 latte.tgz
+-rw-r--r-- 1 joanna joanna   348 sty 13 15:37 Makefile
+drwxr-xr-x 6 joanna joanna  4096 sty 14 18:52 mrjp-tests
+-rw-r--r-- 1 joanna joanna   162 sty 14 23:14 plik.out
+-rw-r--r-- 1 joanna joanna  1298 sty 14 18:39 README
+drwxr-xr-x 2 joanna joanna 12288 sty 14 23:14 src
+drwx------ 4 joanna joanna  4096 sty 14 22:37 Swiezy.EXpAl
+drwx------ 4 joanna joanna  4096 sty 14 22:50 Swiezy.hScaG
+drwx------ 4 joanna joanna  4096 sty 14 22:47 Swiezy.HVzMo
+-rw-r--r-- 1 joanna joanna   304 sty  9 12:05 test1.sh
+-rw-r--r-- 1 joanna joanna   100 sty  9 12:05 test2.sh
+-rw-r--r-- 1 joanna joanna   332 sty 14 18:54 test3.sh
+-rw-r--r-- 1 joanna joanna   108 sty 14 20:51 test4.sh
+-rw-r--r-- 1 joanna joanna   412 sty 10 13:34 test.sh
+-rw-r--r-- 1 joanna joanna  3917 sty 14 22:35 testuj_sciezki.sh
+ 
+Przygotowanie świeżego katalogu
+ 
+Przygotowanie udawanego katalogu z testami
+/home/joanna/Publiczny/studia/IVrok/MRJP/zadanie2/better/joanna_wiszowata/kompilatoreg/Swiezy.ihZ45/Testy Różne
+razem 48
+-rw-r--r-- 1 joanna joanna 107 sty 14 23:14 plik testowy1.lat
+-rw-r--r-- 1 joanna joanna   2 sty 14 23:14 plik testowy1.output
+-rw-r--r-- 1 joanna joanna 107 sty 14 23:14 plik testowy2.lat
+-rw-r--r-- 1 joanna joanna   2 sty 14 23:14 plik testowy2.output
+Zrobione.
+ 
+Przygotowanie udawanego katalogu studenta
+mkdir: utworzony katalog „Imię Nazwisko”
+/home/joanna/Publiczny/studia/IVrok/MRJP/zadanie2/better/joanna_wiszowata/kompilatoreg/Swiezy.ihZ45/Imię Nazwisko
+razem 20
+-rw-r--r-- 1 joanna joanna 10924 sty 14 23:14 latte.tgz
+Zrobione.
+ 
++ Odpakowywanie...
+tar xzvf "latte.tgz"
+src/
+src/Main.hs
+src/Errors.hs
+src/DefaultFunctions.hs
+src/Compiler.hs
+src/ExprCompilation.hs
+src/Latte.cf
+src/DataAndTypes.hs
+src/Utils.hs
+Makefile
+README
+ 
++ Odpalanie make...
+cd ./src && bnfc -m -haskell Latte.cf && make
+The BNF Converter, 2.6a
+(c) Krasimir Angelov, Jean-Philippe Bernardy, Bjorn Bringert, Johan Broberg, Paul Callaghan, 
+    Markus Forsberg, Ola Frid, Peter Gammie, Patrik Jansson, 
+    Kristofer Johannisson, Antti-Juhani Kaijanaho, Ulf Norell, 
+    Michael Pellauer and Aarne Ranta 2002 - 2012.
+Free software under GNU General Public License (GPL).
+Bug reports to bnfc-dev@googlegroups.com.
+
+
+Reading grammar from Latte.cf
+Warning: names not unique: Arg Block Program
+This can be an error in other back ends.
+
+69 rules accepted
+
+writing new file AbsLatte.hs
+writing new file LexLatte.x
+   (Use Alex 3.0 to compile.)
+writing new file ParLatte.y
+   (Tested with Happy 1.15)
+writing new file DocLatte.tex
+writing new file DocLatte.txt
+writing new file SkelLatte.hs
+writing new file PrintLatte.hs
+writing new file TestLatte.hs
+writing new file ErrM.hs
+writing new file Makefile
+Done!
+make[1]: Wejście do katalogu `/home/joanna/Publiczny/studia/IVrok/MRJP/zadanie2/better/joanna_wiszowata/kompilatoreg/Swiezy.ihZ45/Imię Nazwisko/src'
+happy -gca ParLatte.y
+alex -g LexLatte.x
+latex DocLatte.tex; dvips DocLatte.dvi -o DocLatte.ps
+This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013/Debian)
+ restricted \write18 enabled.
+entering extended mode
+(./DocLatte.tex
+LaTeX2e <2011/06/27>
+Babel <3.9h> and hyphenation patterns for 3 languages loaded.
+
+ghc --make TestLatte.hs -o TestLatte
+[1 of 7] Compiling ErrM             ( ErrM.hs, ErrM.o )
+[2 of 7] Compiling AbsLatte         ( AbsLatte.hs, AbsLatte.o )
+[3 of 7] Compiling PrintLatte       ( PrintLatte.hs, PrintLatte.o )
+[4 of 7] Compiling SkelLatte        ( SkelLatte.hs, SkelLatte.o )
+[5 of 7] Compiling LexLatte         ( LexLatte.hs, LexLatte.o )
+[6 of 7] Compiling ParLatte         ( ParLatte.hs, ParLatte.o )
+[7 of 7] Compiling Main             ( TestLatte.hs, TestLatte.o )
+Linking TestLatte ...
+make[1]: Opuszczenie katalogu `/home/joanna/Publiczny/studia/IVrok/MRJP/zadanie2/better/joanna_wiszowata/kompilatoreg/Swiezy.ihZ45/Imię Nazwisko/src'
+export LDFLAGS='-m32 -L/usr/lib32'
+cd ./src && ghc Main.hs -XRankNTypes -o latc_x86
+[ 1 of 11] Compiling ErrM             ( ErrM.hs, ErrM.o ) [flags changed]
+[ 2 of 11] Compiling AbsLatte         ( AbsLatte.hs, AbsLatte.o ) [flags changed]
+[ 3 of 11] Compiling LexLatte         ( LexLatte.hs, LexLatte.o ) [flags changed]
+[ 5 of 11] Compiling DataAndTypes     ( DataAndTypes.hs, DataAndTypes.o )
+[ 6 of 11] Compiling Utils            ( Utils.hs, Utils.o )
+[ 7 of 11] Compiling Errors           ( Errors.hs, Errors.o )
+[ 8 of 11] Compiling ExprCompilation  ( ExprCompilation.hs, ExprCompilation.o )
+[ 9 of 11] Compiling DefaultFunctions ( DefaultFunctions.hs, DefaultFunctions.o )
+[10 of 11] Compiling Compiler         ( Compiler.hs, Compiler.o )
+[11 of 11] Compiling Main             ( Main.hs, Main.o )
+Linking latc_x86 ...
+mv ./src/latc_x86 .
+ 
++ Efekt make:
+/home/joanna/Publiczny/studia/IVrok/MRJP/zadanie2/better/joanna_wiszowata/kompilatoreg/Swiezy.ihZ45/Imię Nazwisko
+razem 2276
+-rwxr-xr-x 1 joanna joanna 2262886 sty 14 23:15 latc_x86
+-rw-r--r-- 1 joanna joanna   10924 sty 14 23:14 latte.tgz
+-rw-r--r-- 1 joanna joanna     348 sty 13 15:37 Makefile
+-rw-r--r-- 1 joanna joanna    1298 sty 14 18:39 README
+drwxr-xr-x 2 joanna joanna   12288 sty 14 23:15 src
+ 
++ Szukamy odpalacza
+Jest odpalacz dla x86 !
+ 
++ Odpalamy odpalacz!
+  ... ścieżka względna ...
+"Imię Nazwisko/latc_x86" "Testy Różne/plik testowy1.lat"
+Powinniśmy mieć pliki bez rozszerzenia i , sprawdzmy
+razem 88
+-rwxr-xr-x 1 joanna joanna 7815 sty 14 23:15 plik testowy1
+-rw-r--r-- 1 joanna joanna  107 sty 14 23:14 plik testowy1.lat
+-rw-r--r-- 1 joanna joanna 1264 sty 14 23:15 plik testowy1.o
+-rw-r--r-- 1 joanna joanna    2 sty 14 23:14 plik testowy1.output
+-rw-r--r-- 1 joanna joanna 1053 sty 14 23:15 plik testowy1.s
+-rw-r--r-- 1 joanna joanna  107 sty 14 23:14 plik testowy2.lat
+-rw-r--r-- 1 joanna joanna    2 sty 14 23:14 plik testowy2.output
+Jest plik 'Testy Różne/plik testowy1.s'! Hurra!
+Jest plik 'Testy Różne/plik testowy1'! Hurra!
+ 
++ Odpalamy efekt kompilacji
+"Testy Różne/plik testowy1" > "Testy Różne/plik testowy1.out" 
+/home/joanna/Publiczny/studia/IVrok/MRJP/zadanie2/better/joanna_wiszowata/kompilatoreg/Swiezy.ihZ45/Testy Różne
+razem 100
+-rwxr-xr-x 1 joanna joanna 7815 sty 14 23:15 plik testowy1
+-rw-r--r-- 1 joanna joanna  107 sty 14 23:14 plik testowy1.lat
+-rw-r--r-- 1 joanna joanna 1264 sty 14 23:15 plik testowy1.o
+-rw-r--r-- 1 joanna joanna    2 sty 14 23:15 plik testowy1.out
+-rw-r--r-- 1 joanna joanna    2 sty 14 23:14 plik testowy1.output
+-rw-r--r-- 1 joanna joanna 1053 sty 14 23:15 plik testowy1.s
+-rw-r--r-- 1 joanna joanna  107 sty 14 23:14 plik testowy2.lat
+-rw-r--r-- 1 joanna joanna    2 sty 14 23:14 plik testowy2.output
+ 
++ Sprawdzamy wyniki
+diff "Testy Różne/plik testowy1.output" "Testy Różne/plik testowy1.out"
+Hurra! Wyjście dla "plik testowy1" zgodne!
+  ... ścieżka bezwzględna ... 
+"/home/joanna/Publiczny/studia/IVrok/MRJP/zadanie2/better/joanna_wiszowata/kompilatoreg/Swiezy.ihZ45/Imię Nazwisko/latc_x86" "/home/joanna/Publiczny/studia/IVrok/MRJP/zadanie2/better/joanna_wiszowata/kompilatoreg/Swiezy.ihZ45/Testy Różne/plik testowy2.lat"
+Powinniśmy mieć pliki bez rozszerzenia i , sprawdzmy
+razem 140
+-rwxr-xr-x 1 joanna joanna 7815 sty 14 23:15 plik testowy1
+-rw-r--r-- 1 joanna joanna  107 sty 14 23:14 plik testowy1.lat
+-rw-r--r-- 1 joanna joanna 1264 sty 14 23:15 plik testowy1.o
+-rw-r--r-- 1 joanna joanna    2 sty 14 23:15 plik testowy1.out
+-rw-r--r-- 1 joanna joanna    2 sty 14 23:14 plik testowy1.output
+-rw-r--r-- 1 joanna joanna 1053 sty 14 23:15 plik testowy1.s
+-rwxr-xr-x 1 joanna joanna 7915 sty 14 23:15 plik testowy2
+-rw-r--r-- 1 joanna joanna  107 sty 14 23:14 plik testowy2.lat
+-rw-r--r-- 1 joanna joanna 1360 sty 14 23:15 plik testowy2.o
+-rw-r--r-- 1 joanna joanna    2 sty 14 23:14 plik testowy2.output
+-rw-r--r-- 1 joanna joanna 1053 sty 14 23:15 plik testowy2.s
+Jest plik '/home/joanna/Publiczny/studia/IVrok/MRJP/zadanie2/better/joanna_wiszowata/kompilatoreg/Swiezy.ihZ45/Testy Różne/plik testowy2.s'! Hurra!
+Jest plik '/home/joanna/Publiczny/studia/IVrok/MRJP/zadanie2/better/joanna_wiszowata/kompilatoreg/Swiezy.ihZ45/Testy Różne/plik testowy2'! Hurra!
+ 
++ Odpalamy efekt kompilacji
+"/home/joanna/Publiczny/studia/IVrok/MRJP/zadanie2/better/joanna_wiszowata/kompilatoreg/Swiezy.ihZ45/Testy Różne/plik testowy2" > "/home/joanna/Publiczny/studia/IVrok/MRJP/zadanie2/better/joanna_wiszowata/kompilatoreg/Swiezy.ihZ45/Testy Różne/plik testowy2.out" 
+/home/joanna/Publiczny/studia/IVrok/MRJP/zadanie2/better/joanna_wiszowata/kompilatoreg/Swiezy.ihZ45/Testy Różne
+razem 152
+-rwxr-xr-x 1 joanna joanna 7815 sty 14 23:15 plik testowy1
+-rw-r--r-- 1 joanna joanna  107 sty 14 23:14 plik testowy1.lat
+-rw-r--r-- 1 joanna joanna 1264 sty 14 23:15 plik testowy1.o
+-rw-r--r-- 1 joanna joanna    2 sty 14 23:15 plik testowy1.out
+-rw-r--r-- 1 joanna joanna    2 sty 14 23:14 plik testowy1.output
+-rw-r--r-- 1 joanna joanna 1053 sty 14 23:15 plik testowy1.s
+-rwxr-xr-x 1 joanna joanna 7915 sty 14 23:15 plik testowy2
+-rw-r--r-- 1 joanna joanna  107 sty 14 23:14 plik testowy2.lat
+-rw-r--r-- 1 joanna joanna 1360 sty 14 23:15 plik testowy2.o
+-rw-r--r-- 1 joanna joanna    2 sty 14 23:15 plik testowy2.out
+-rw-r--r-- 1 joanna joanna    2 sty 14 23:14 plik testowy2.output
+-rw-r--r-- 1 joanna joanna 1053 sty 14 23:15 plik testowy2.s
+ 
++ Sprawdzamy wyniki
+diff "/home/joanna/Publiczny/studia/IVrok/MRJP/zadanie2/better/joanna_wiszowata/kompilatoreg/Swiezy.ihZ45/Testy Różne/plik testowy2.output" "/home/joanna/Publiczny/studia/IVrok/MRJP/zadanie2/better/joanna_wiszowata/kompilatoreg/Swiezy.ihZ45/Testy Różne/plik testowy2.out"
+Hurra! Wyjście dla "plik testowy2" zgodne!
+ 
+Wszystko OK.
+Ale tak naprawdę będę sprawdzać wszystkie programy testowe z
+http://www.mimuw.edu.pl/~ben/Zajecia/Mrj2015/Latte/lattests121017.tgz
+ 
+Teraz można posprzątać poprzez
+  rm -rf Swiezy.ihZ45

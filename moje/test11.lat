@@ -1,0 +1,22 @@
+int main() {
+	printBool(implies(true, false));
+	printBool(implies(false, true));
+	return 0;
+}
+
+boolean implies(boolean x, boolean y) {
+  printBool(x);
+  printBool(y);
+  printBool(!x);
+  printBool(x == y);
+  printBool(!x || x == y);
+  return !x || x == y;
+}
+
+void printBool(boolean b) {
+	if (b) {
+		printInt(1);
+	} else {
+		printInt(0);
+	}
+}

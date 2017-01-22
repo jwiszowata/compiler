@@ -1,0 +1,95 @@
+class A {
+    B ptr;
+}
+
+class B {
+    A ptr;
+}
+
+class Pair {
+    A a;
+    B b;
+}
+
+void assert(boolean b) {
+    if (!b)
+        printString("fail");
+}
+
+A createA() {
+    A m = new A;
+    return m;
+}
+
+B createB() {
+    B w = new B;
+    return w;
+}
+
+Pair createPair() {
+    Pair p = new Pair;
+    p.a = createA();
+    p.b = createB();
+    p.a.ptr = p.b;
+    p.b.ptr = p.a;
+    return p;
+}
+
+int main() {
+    Pair p;
+
+    assert(p == (Pair)null);
+
+    p = createPair();
+    assert(p != (Pair)null);
+    assert(p.a.ptr == p.b);
+    assert(p.b.ptr == p.a);
+    assert(p.a.ptr == p.b);
+    assert(p.a.ptr.ptr.ptr == p.b);
+    assert(p.a.ptr.ptr.ptr.ptr == p.a);
+
+    A a = p.a, otherA;
+    B b = p.b, otherB;
+    assert(a.ptr == b);
+    assert(b.ptr == a);
+    assert(a.ptr == b);
+    assert(a.ptr.ptr.ptr == b);
+    assert(a.ptr.ptr.ptr.ptr == a);
+
+    assert(p.a == a);
+
+    a = new A;
+    assert(p.a != a);
+
+    otherA = a;
+    a = p.a;
+    // now a -> b -> a
+
+    a.ptr.ptr = otherA;
+    // now a -> b -> otherA
+
+    assert(a.ptr == b);
+    assert(a.ptr.ptr != a);
+    assert(a.ptr.ptr == otherA);
+    assert(a.ptr.ptr.ptr == (B)null);
+    assert(b.ptr == otherA);
+    assert(b.ptr.ptr == (B)null);
+    assert(otherA.ptr == (B)null);
+
+    otherB = new B;
+
+    otherB.ptr = a;
+    otherA.ptr = otherB;
+
+    // a->b->otherA->otherB->a
+    assert(a.ptr.ptr.ptr.ptr == a);
+    assert(a.ptr.ptr != a);
+    assert(b.ptr.ptr.ptr.ptr == b);
+    assert(b.ptr.ptr != b);
+    assert(otherA.ptr.ptr.ptr.ptr == otherA);
+    assert(otherA.ptr.ptr != otherA);
+    assert(otherB.ptr.ptr.ptr.ptr == otherB);
+    assert(otherB.ptr.ptr != otherB);
+
+    return 0;
+}

@@ -9,6 +9,7 @@ import System.Environment
 import System.IO
 import System.FilePath.Posix
 import System.Cmd
+import System.Exit
 
 main = do
   args <- getArgs
@@ -21,26 +22,29 @@ main = do
       error "No file name was given!"
   
 doInterpret f (Ok e) = 
-  let sfp = filePath f "asm"
+  let sfp = filePath f "s"
       ofp = filePath f "o"
       fp = dropExtension f
       dir = directory f
       name = takeBaseName f
       str = compileProgram e
   in do { if length str == 1
-          then do { hPutStrLn stderr "ERROR";
-                    hPutStrLn stderr $ unlines str;
+          then do { showError (unlines str);
                     return () }
           else do { writeFile sfp $ unlines str;
-                    system("nasm -f elf32 " ++ sfp ++ " -o " ++ ofp);
-                    system("gcc -m32 -o " ++ fp ++ " " ++ ofp);
-                    --system("ld -o " ++ fp ++ " " ++ ofp ++ 
-                    --" -melf_i386 /home/students/inf/PUBLIC/MRJP/lib32/crt?.o" ++ 
+                    system("nasm -f elf32 \"" ++ sfp ++ "\" -o \"" ++ ofp ++ "\"");
+                    system("gcc -m32 -o \"" ++ fp ++ "\" \"" ++ ofp ++ "\""); -- on my computer
+                    --system("ld -o \"" ++ fp ++ "\" \"" ++ ofp ++ 
+                    --"\" -melf_i386 /home/students/inf/PUBLIC/MRJP/lib32/crt?.o" ++ 
                     --" -L /home/students/inf/PUBLIC/MRJP/lib32 --library c");
                     hPutStrLn stderr "OK";
                     return () } }
                                 
-doInterpret f (Bad s) = hPutStrLn stderr s
+doInterpret f (Bad s) = showError (s ++ "\n")
+
+showError s = do { hPutStrLn stderr "ERROR";
+                   hPutStr stderr s;
+                   exitFailure }
 
 filePath filename e = (dropExtension filename) <.> e
 

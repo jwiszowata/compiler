@@ -1,7 +1,9 @@
 module Compiler(compileProgram) where
 
 import Utils
+import Errors
 import DefaultFunctions
+import ExprCompilation
 
 -------------------- KOMPILACJA PROGRAMU ---------------------------------------
 -- [compileProgram] bierze Program i zwraca listę instrukcji nasmowych w postaci
@@ -11,31 +13,35 @@ compileProgram (Program topDefs) =
     let pos = Pos (-4)
         startLabel = (0, Ident "")
         funs = pushDefaultFuns
-        (defFuns, bMain, bOther) = pushDefinedFuns topDefs funs False
-        (strings, _, _, _, _, _, _, errorMsg, program) = 
-          unStOut (compileDefs topDefs []) defFuns ([], []) pos startLabel [] 0 ""
-    in if not bMain
-       then ["There is no proper main function!"]
-       else if bOther
-            then ["There are two function with the same name!"]
-            else if errorMsg /= ""
-                 then [errorMsg]
-                 else pushDefaults strings ++ program
+        (defFuns, defSts, bMain, bOther, bVoid) = pushDefinitions topDefs funs [] False
+        (strings, _, _, _, _, _, _, _, errorMsg, program) = 
+          unStOut (compileDefs topDefs []) defFuns defSts ([], []) pos startLabel [] 0 ""
+    in case (bMain, bOther, bVoid, errorMsg /= "") of
+       (False, _, _, _) -> mainFunErr
+       (_, True, _, _) -> dubFunNameErr -- TODO 3 rodzaje błędów!
+       (_, _, True, _) -> voidArgErr
+       (_, _, _, True) -> [errorMsg]
+       _ -> pushDefaults strings ++ program
 
 
-pushDefinedFuns :: [TopDef] -> Funs -> Bool -> (Funs, Bool, Bool)
-pushDefinedFuns [] fs bM = (fs, bM, False)
-pushDefinedFuns (def:defs) fs bM = 
-  let (fs1, bM1, bO1) = pushDefinedFun def fs bM
-  in if bO1
-     then (fs1, bM1, bO1)
-     else pushDefinedFuns defs fs1 bM1
+pushDefinitions :: [TopDef] -> Funs -> Structs -> Bool -> (Funs, Structs, Bool, Bool, Bool)
+pushDefinitions [] fs sts bM = (fs, sts, bM, False, False)
+pushDefinitions (def:defs) fs sts bM = 
+  let (fs1, sts1, bM1, bO1, bV1) = pushDefinition def fs sts bM
+  in if bO1 || bV1
+     then (fs1, sts1, bM1, bO1, bV1)
+     else pushDefinitions defs fs1 sts1 bM1
 
-pushDefinedFun :: TopDef -> Funs -> Bool -> (Funs, Bool, Bool)
-pushDefinedFun (FnDef typ ident args (Block stmts)) funs b =
-  let v = pushArgs args
-      fun = (typ, ident, v)
-  in (fun:funs, b || (isMainFun fun), isDefinedFun ident funs)
+pushDefinition :: TopDef -> Funs -> Structs -> Bool -> (Funs, Structs, Bool, Bool, Bool)
+pushDefinition def funs sts b = case def of 
+  FnDef t id args (Block stmts) -> let (v, isVoid) = pushArgs args
+                                       fun = (t, id, v)
+                                   in (fun:funs, sts, b || (isMainFun fun), isDefinedFun id funs, isVoid)
+  StDef t atts -> let (ats, isVoid) = pushAtts atts
+                      st = (t, ats)
+                  in case t of
+                    Clas t1 -> (funs, st:sts, b, isDefinedSt t sts, isVoid)
+                    _ -> (funs, st:sts, b, True, isVoid)
 
 isMainFun :: Fun -> Bool
 isMainFun fun = let typ = typOF fun == Int
@@ -47,30 +53,36 @@ isDefinedFun :: Ident -> Funs -> Bool
 isDefinedFun _ [] = False
 isDefinedFun ident (fun:funs) = (idOF fun == ident) || (isDefinedFun ident funs)
 
+isDefinedSt :: Type -> Structs -> Bool
+isDefinedSt _ [] = False
+isDefinedSt t (st:sts) = (typOfS st == t) || (isDefinedSt t sts)
+
 ---------------- KOMPILACJA DEFINICJI FUNKCJI ----------------------------------
--- [compileDefs] bierze listę definicji funkcji, oraz początkowy stan listy 
+-- [compileDefs] bierze listę definicji, oraz początkowy stan listy 
 -- "statycznych" Stringów i generuje kod nasmowy dla każdej z funkcji; zwraca 
 -- ostateczny stan listy "statycznych" stringów ze wszystkich zdefiniowanych 
 -- funkcji
 compileDefs :: [TopDef] -> StrObjs -> M StrObjs
 compileDefs [] so = do { return so }
 compileDefs (def:defs) so = do { fs <- getFuns;
-                                 so1 <- compileDef def fs so;
+                                 sts <- getSts;
+                                 so1 <- compileDef def fs sts so;
                                  compileDefs defs so1 }
 
-compileDef :: TopDef -> Funs -> StrObjs -> M StrObjs
-compileDef (FnDef typ ident args (Block stmts)) funs so =
+compileDef :: TopDef -> Funs -> Structs -> StrObjs -> M StrObjs
+compileDef (FnDef typ ident args (Block stmts)) funs sts so =
   let pos = Pos (-4)
       f = getFunction ident funs
       args = argOF f
-      (_, _, _, _, _, strings, varsNr, errorMsg, definition) = 
-        unStOut (compileFun f stmts) funs (args, args) pos (0, ident) so 0 ""
+      (_, _, _, _, _, _, strings, varsNr, errorMsg, definition) = 
+        unStOut (compileFun f stmts) funs sts (args, args) pos (0, ident) so 0 ""
       str = (addPreamble ident varsNr) $ addEpilogue definition
   in do { if errorMsg /= ""
           then do { pushErr errorMsg;
                     return strings }
           else do { pushInstr str;
                     return strings } }
+compileDef (StDef t ats) _ _ so = do { return so }
 
 addPreamble :: Ident -> Int -> [String] -> [String]
 addPreamble ident i str = [toStr ident ++ ":", 
@@ -87,98 +99,103 @@ addEpilogue str = str ++ ["leave", "ret"]
 -- kompilowanej funkcji
 compileFun :: Fun -> [Stmt] -> M ()
 compileFun f stmts = 
-  do { (t, _) <- compileStmts stmts (typOF f);
+  do { (t, _) <- compileStmts stmts;
        if t == typOF f
        then return ()
-       else pushErr (show (typOF f) ++ " function " ++ 
-        toStr (idOF f) ++ " has type " ++ show t ++ "!") }
+       else funTypeErr f t }
 
-compileStmts :: [Stmt] -> Type -> M StmtType
+compileStmts :: [Stmt] -> M StmtType
 compileStmts [] = do { defaultST }
-compileStmts (stmt:stmts)
-  | stmts == [] = compileStmt stmt
-  | otherwise = do { (t, r) <- compileStmt stmt;
-                     if r == R
-                     then return (t, R)
-                     else compileStmts stmts }
+compileStmts (stmt:stmts) = 
+  do { (t, r) <- compileStmt stmt;
+       case r of
+       R -> do { (t1, r1) <- compileStmts stmts;
+                 case r1 of
+                 NR -> return (t, r)
+                 _ -> if t1 == t
+                      then return (t, r)
+                      else difRetTypeErr t t1 }
+       PR -> do { (t1, r1) <- compileStmts stmts;
+                  case (t1, r1) of
+                  (_, R) -> if t1 == t 
+                            then return (t, R)
+                            else blockTypeErr t t1
+                  (Void, NR) -> if t == Void
+                                then return (t1, r1)
+                                else blockTypeErr t t1
+                  _ -> retErr }
+       NR -> compileStmts stmts }
 
 ------------------ KOMPILACJA INSTRUKCJI ---------------------------------------
 -- [compileStmt] generowane są nasmowe instrukcje dla poszczególnych typów Stmt,
 -- zwracany jest typ jaki został wyliczony dla danej instrkcji i informacja czy 
 -- wystąpiła instrukcja "return"
-compileStmt :: Type -> Stmt -> M StmtType
-compileStmt ftype stmt = case stmt of
+compileStmt :: Stmt -> M StmtType
+compileStmt stmt = case stmt of
     Empty -> do { defaultST }
-
     BStmt (Block stmts) -> do { (vars, dvars) <- getVars;
                                 setVars (vars, []);
                                 (t, r) <- compileStmts stmts;
                                 setVars (vars, dvars);
                                 return (t, r) }
-
     Decl t items -> do { declareItems t items;
                          defaultST }
-
-    Ass id expr -> do { (typ, ident, p) <- getVar id;
-                        t <- compileExpr expr;
-                        if t == typ
-                        then do { pushInstr ["pop eax",
-                                             "mov " ++ show p ++ ", eax"];
-                                  defaultST }
-                        else do { pushErr ("Try of assigment " ++ show t ++ 
-                                     " expression to " ++ show typ ++ 
-                                     " variable " ++ toStr id ++ "!");
-                                  defaultST } }
-
-    Incr id -> do { changeOne id "inc";
+    Ass ass expr -> do { (a, at) <- compileAssign ass;
+                         if at == NA 
+                         then notAssErr a
+                         else do { t1 <- compileExpr expr;
+                                   if typOfA a == t1
+                                   then do { pushInstr ["pop eax", -- expr
+                                                        "pop edx", -- adress
+                                                        "mov [edx], eax"];
+                                            defaultST }
+                                   else assErr (typOfA a) t1 (idOfA a) } }
+    Incr ass -> do { changeOne ass "inc";
                     defaultST }
-
-    Decr id -> do { changeOne id "dec";
+    Decr ass -> do { changeOne ass "dec";
                     defaultST }
-
     Ret expr -> do { t <- compileExpr expr;
-                     pushInstr ["pop eax",
-                                "leave",
-                                "ret"];
-                     return (t, R) }
-
+                     if t /= Void
+                     then do { pushInstr ["pop eax",
+                                          "leave",
+                                          "ret"];
+                               return (t, R) }
+                     else retVoidErr }
     VRet -> do { pushInstr ["leave",
                             "ret"];
                  return (Void, R) }
-
-    Cond expr stmt -> do { stypes <- ifTypeCheck expr stmt Empty;
-                           ifRetST stypes }
-
-    CondElse expr stmt1 stmt2 -> do { stypes <- ifTypeCheck expr stmt1 stmt2;
-                                      ifElseRetST stypes }
-
+    Cond expr stmt -> ifTypeCheck expr stmt Empty ifRetST
+    CondElse expr stmt1 stmt2 -> ifTypeCheck expr stmt1 stmt2 ifElseRetST
     While expr stmt -> do { l1 <- createLabel;
                             pushInstr [l1 ++ ":"];
-                            t <- compileExpr expr;
-                            if t == Bool
-                            then do { l2 <- createLabel;
-                                      pushInstr ["pop eax",
-                                                "mov edx, dword 0",
-                                                "cmp edx, eax",
-                                                "je " ++ l2];
-                                      (t1, r1) <- compileStmt stmt;
-                                      pushInstr ["jmp " ++ l1,
-                                                l2 ++ ":"];
-                                      return (t1, r1) }
-                            else do { pushErr ("If condition is type " ++ 
-                              (show t) ++ " instead of Bool!");
-                            defaultST } }
-
+                            case expr of
+                            ELitFalse -> defaultST
+                            ELitTrue -> do { (t1, r1) <- while stmt l1;
+                                             if r1 /= R
+                                             then whileLoopedErr
+                                             else return (t1, r1) }
+                            _ -> do { t <- compileExpr expr;
+                                      if t == Bool
+                                      then while stmt l1
+                                      else condErr t "While" } }
     SExp expr -> do { compileExpr expr;
                       pushInstr ["pop eax"];
                       defaultST }
+    For t vId expr stmt -> do { t1 <- compileExpr expr;
+                               case t1 of
+                                Array t2 -> do { if t == t2
+                                                 then compileFor vId t stmt
+                                                 else forTypeErr t t2 }
+                                _ -> do { forNotArrVarErr;
+                                          defaultST } }
 
 ------------- DEKLARACJE ZMIENNYCH ---------------------------------------------
-
 declareItems :: Type -> [Item] -> M ()
 declareItems _ [] = do { return () }
-declareItems t (item:items) = do { declareItem t item;
-                                   declareItems t items }
+declareItems t (item:items) = do { if t == Void
+                                   then declVoidErr
+                                   else do { declareItem t item;
+                                             declareItems t items } }
 
 declareItem :: Type -> Item -> M ()
 declareItem t item = case item of
@@ -187,294 +204,109 @@ declareItem t item = case item of
   Init id expr -> do { t1 <- compileExpr expr;
                        if t1 == t
                        then declare id t "pop eax"
-                       else pushErr ("Type of expresion (" ++ show t1 ++ 
-                         ") is different than type of variable " ++ 
-                         toStr id ++ "!") }
+                       else initDeclErr t1 t id }
 
 declare :: Ident -> Type -> String -> M ()
 declare id t valToEax = 
   do { is <- isDeclaredVar id;
        if is 
-       then pushErr ("There already exists variable " ++ toStr id ++ "!")
+       then dubVar id
        else do { pos <- pushVar t id;
                  if pos == EmptyPos
-                 then pushErr ("There is no start position on stack!")
-                 else do { pushInstr [ valToEax, 
+                 then interiorErr
+                 else do { pushInstr [valToEax, 
                                       "mov " ++ show pos ++ ", eax"] } } }
 
 emptyVal :: Type -> String 
-emptyVal Str = show ""
-emptyVal _ = show 0
+emptyVal Str = "emptyStr"
+emptyVal _ = "dword 0"
 
 --------------------- INKREMENTACJA I DEKRYMENTACJA ----------------------------
-
-changeOne :: Ident -> String -> M ()
-changeOne id instr = 
-  do { var <- getVar id;
-       if typOf var == Int
-       then do { pushInstr ["mov eax, " ++ show (posOf var),
-                            instr ++ " eax",
-                            "mov " ++ show (posOf var) ++ ", eax"] }
-       else do { pushErr ("Only Ints can be decrimented and " ++
-                    "incrimented, not " ++ show (typOf var) ++ "!") } }
+changeOne :: Assign -> String -> M ()
+changeOne ass instr = 
+  do { (a, at) <- compileAssign ass;
+       if typOfA a == Int
+       then do { if at == A
+                 then do { pushInstr ["pop eax",
+                                      "mov edx, [eax]",
+                                      instr ++ " edx",
+                                      "mov [eax], edx"] }
+                 else do { notAssErr a;
+                           return () } }
+       else decIncErr (typOfA a) }
 
 ------------------------------ IF ELSE -----------------------------------------
-
-ifTypeCheck :: Expr -> Stmt -> Stmt -> M StmtType
-ifTypeCheck expr stmt1 stmt2 = case expr of
+ifTypeCheck :: Expr -> Stmt -> Stmt -> ((StmtType, StmtType) -> M StmtType) -> M StmtType
+ifTypeCheck expr stmt1 stmt2 retTypFun = case expr of
        ELitFalse -> compileStmt stmt2
        ELitTrue -> compileStmt stmt1
        _ -> do { t <- compileExpr expr;
                  if t == Bool
                  then do { compileExpr ELitTrue;
-                           labeledInstr compileStmt stmt1 compileStmt stmt2 "je" }
-                 else do { pushErr ("Condition in 'if' statement is type " ++ 
-                                 show t ++ " instead of Bool!");
-                           defaultST } }
+                           sts <- labeledInstr compileStmt stmt1 compileStmt stmt2 "je" ;
+                           retTypFun sts }
+                 else condErr t "If" }
 
-labeledInstr1 :: (Stmt -> M StmtType) -> Stmt-> Stmt -> String -> M (StmtType, StmtType)
-labeledInstr1 cfun stmt1 stmt2 instr = do { l1 <- createLabel;
-                                           l2 <- createLabel;
-                                           pushInstr ["pop edx",
-                                                      "pop eax",
-                                                      "cmp eax, edx",
-                                                      instr ++ " " ++ l1];
-                                           st2 <- cfun stmt2;
-                                           pushInstr ["jmp " ++ l2,
-                                                      l1 ++ ":" ];
-                                           st1 <- cfun stmt1;
-                                           pushInstr [l2 ++ ":"];
-                                           return (st1, st2) }
+ifRetST :: (StmtType, StmtType) -> M StmtType
+ifRetST ((t, r), _) = case r of 
+  R -> return (t, PR)
+  NR -> return (t, NR)
+  PR -> blockTypeErr t Void
 
-retProperType :: (StmtType, StmtType) -> M StmtType
-retProperType ((t1, r1), (t2, r2)) = case (t1, t2) of
-  (Void, Void) -> if r1 == r2
-                  then return (Void, r1)
-                  else defaultST
+ifElseRetST :: (StmtType, StmtType) -> M StmtType
+ifElseRetST ((t1, r1), (t2, r2)) = case (r1, t1, r2, t2) of 
+  (R, _, R, _) -> ifElseTypeCheck t1 t2 R
+  (NR, _, NR, _) -> ifElseTypeCheck t1 t2 NR
+  (NR, Void, R, Void) -> do { return (Void, R) }
+  (R, Void, NR, Void) -> do { return (Void, R) }
+  _ -> retErr
 
-labeledInstr :: (Stmt -> M StmtType) -> Stmt-> (Stmt -> M StmtType) -> Stmt -> String -> M StmtType
-labeledInstr cfun1 stmt1 cfun2 stmt2 instr = 
-  do { l1 <- createLabel;
-       l2 <- createLabel;
-       pushInstr ["pop edx",
-                  "pop eax",
-                  "cmp eax, edx",
-                  instr ++ " " ++ l1];
-       (t2, r2) <- cfun2 stmt2;
-       pushInstr ["jmp " ++ l2,
-                  l1 ++ ":" ];
-       (t1, r1) <- cfun1 stmt1;
-       pushInstr [l2 ++ ":"];
-       case (t1, t2) of
-       (Void, _) -> do { if r1 == r2
-                         then return (t2, r2)
-                         else retErr }
-       (_, Void) -> do { if r1 == r2
-                         then return (t1, r1)
-                         else do { if stmt2 == Empty 
-                                   then return (Void, NR)
-                                   else retErr } }
-       (_, _) -> do { if t1 == t2
-                      then do { if r1 == r2
-                                then return (t1, r1)
-                                else retErr }
-                      else do { pushErr ("Different types of blocks: " ++ 
-                                  show t1 ++ " and " ++ show t2 ++ "!"); 
-                                return (Void, R) } } }
+ifElseTypeCheck :: Type -> Type -> RTyp -> M StmtType
+ifElseTypeCheck t1 t2 rt = 
+  do { if t1 == t2
+       then return (t1, rt)
+       else blockTypeErr t1 t2 }
 
-retErr :: M StmtType
-retErr = do { pushErr ("One block return value and the other one not!"); 
-              return (Void, R) }
---------------------------------------------------------------------------------
-pushExprs :: Ident -> [Expr] -> Vars -> M ()
-pushExprs _ [] [] = do { return () }
-pushExprs id [] _ = pushErr ("Too few arguments is given to called function " ++ toStr id ++ "!")
-pushExprs id _ [] = pushErr ("Too many arguments is given to called function " ++ toStr id ++ "!")
-pushExprs id (expr:exprs) (var:vars) = 
-  do { t <- compileExpr expr;
-       if t == typOf var
-       then do { pushExprs id exprs vars }
-       else pushErr ("Wrong type (" ++ show t ++ 
-        ") of argument of called function " ++ toStr id ++ ". Should be " ++ 
-       show (typOf var) ++ "!") }
-
-popExprs :: Int -> M ()
-popExprs i = do { pushInstr ["add esp, " ++ show (i * 4)] }
-
-compileExpr :: Expr -> M Type
-compileExpr expr = case expr of
-    EVar id -> retVar id
-    ELitInt i -> do { pushInstr ["push dword " ++ show i];
-                      return Int }
-    ELitTrue -> do { pushInstr ["push dword 1"];
-                     return Bool }
-    ELitFalse -> do { pushInstr ["push dword 0"];
-                      return Bool }
-    EApp id exprs -> do { (typ, fid, args) <- getFun id;
-                          if fid /= id
-                          then do { pushErr ("There is no " ++ toStr id ++ " function!");
-                                    return Void }
-                          else do { pushExprs fid (reverse exprs) (reverse args);
-                                    pushInstr ["call " ++ toStr fid];
-                                    popExprs (length exprs);
-                                    pushInstr ["push eax"];
-                                    return typ } }
-    EString s -> do { id <- saveStr s;
-                      pushInstr ["push dword " ++ show (length s + 1),
-                                "call malloc",
-                                "add esp, 4",
-                                "push eax", -- zwracany adres, zostanie na koniec na stosie
-                                "push " ++ id,
-                                "push eax",
-                                "call strcpy", -- wkopiowywanie stringa
-                                "add esp, 8"];
-                      return Str }
-    Neg expr -> do { t <- compileExpr expr;
+------------------- WHILE ------------------------------------------------------
+while :: Stmt -> String -> M StmtType
+while stmt l1 = do { l2 <- createLabel;
                      pushInstr ["pop eax",
-                               "neg eax",
-                               "push eax"];
-                     return t }
-    Not expr -> do { t <- compileExpr expr;
-                     pushInstr ["pop eax",
-                               "mov edx, 1",
-                               "xor eax, edx",
-                               "push eax"];
-                     return t }
-    EMul expr1 op expr2 -> mul op expr1 expr2
-    EAdd expr1 op expr2 -> add op expr1 expr2
-    ERel expr1 op expr2 -> do { t1 <- compileExpr expr1;
-                                t2 <- compileExpr expr2;
-                                (t, r) <- rel op t1 t2;
-                                return t }
-    EAnd expr1 expr2 -> lazyCompileExpr (Not expr1) "push dword 0" expr2
-    EOr expr1 expr2 -> lazyCompileExpr expr1 "push dword 1" expr2
+                                "mov edx, dword 0",
+                                "cmp edx, eax",
+                                "je " ++ l2];
+                     (t1, r1) <- compileStmt stmt;
+                     pushInstr ["jmp " ++ l1,
+                                l2 ++ ":"];
+                     return (t1, r1) }
 
-retVar :: Ident -> M Type
-retVar id = do { (typ, _, pos) <- getVar id;
-                 if pos == EmptyPos
-                 then do { pushErr ("There is no variable " ++ toStr id ++ "declared!");
-                           return Void }
-                 else do { pushInstr ["mov eax, " ++ show pos,
-                                     "push eax"];
-                           return typ } }
-
-mul :: MulOp -> Expr -> Expr -> M Type
-mul op expr1 expr2 = case op of
-  Times -> operOn Int expr1 expr2 (addOper "imul")
-  Div -> operOn Int expr1 expr2 divOper
-  Mod -> operOn Int expr1 expr2 modOper
-
-add :: AddOp -> Expr -> Expr -> M Type
-add op expr1 expr2 = case op of
-  Plus -> plusOperOn expr1 expr2
-  Minus -> operOn Int expr1 expr2 (addOper "sub")
-
-operOn :: Type -> Expr -> Expr -> (String -> M ()) -> M Type
-operOn t expr1 expr2 instrFun = 
-  do { t1 <- compileExpr expr1;
-       t2 <- compileExpr expr2;
-       if ((t1 == t) && (t2 == t))
-       then do { pushInstr ["pop ecx", -- kolejność odwrotna od pushowania
-                           "pop eax"];
-                 instrFun "ecx";
-                 return t }
-       else do { pushErr ("Type of first expr (" ++ show t1 ++ 
-                          ") or type of second one (" ++ show t2 ++ ") is different than " ++ 
-                          show t ++ "!");
-                 return t } }
-
-plusOperOn :: Expr -> Expr -> M Type
-plusOperOn expr1 expr2 = 
-  do { t1 <- compileExpr expr1;
-       t2 <- compileExpr expr2;
-       case (t1, t2) of 
-       (Int, Int) -> do { pushInstr ["pop ecx", -- kolejność odwrotna od pushowania
-                                    "pop eax"];
-                          addOper "add" "ecx";        
-                          return Int }
-       (Str, Str) -> do { pushInstr ["pop ecx", -- kolejność odwrotna od pushowania
-                                    "pop eax"];
-                          concatOper "ecx"; 
-                          return Str }
-       (_, _) -> do { pushErr ("Operator '+': Type of first expr is " ++ show t1 ++ 
-                        ", type of second one is " ++ show t2 ++ "!"); 
-                      return Void } }
-
-lazyCompileExpr :: Expr -> String -> Expr -> M Type
-lazyCompileExpr expr1 instr expr2 = 
-  do { t <- compileExpr expr1;
-       if t == Bool
-       then do { pushInstr ["push dword 1"];
-                 l1 <- createLabel;
-                 l2 <- createLabel;
-                 pushInstr ["pop edx",
-                           "pop eax",
-                           "cmp eax, edx",
-                           "je " ++ l1];
-                 t2 <- compileExpr expr2;
-                 if t2 == Bool
-                 then do { pushInstr ["jmp " ++ l2,
-                                     l1 ++ ":",
-                                     instr,
-                                     l2 ++ ":"];
-                           return t2 }
-                 else do { pushErr ("Type of second expr in and/or (" ++ show t ++ 
-                                    ") is different than Bool!");
-                           return Void } }
-       else do { pushErr ("Type of first expr in and/or (" ++ show t ++ 
-                          ") is different than Bool!");
-                 return Void } }
-
-addOper :: String -> String -> M ()
-addOper instr reg = do { pushInstr [instr ++ " eax, " ++ reg,
-                                   "push eax"] }
-
-concatOper :: String -> M () -- dostane dwa wskazniki na stercie
-concatOper reg = do { pushInstr (concatStringsStr reg) }
-
-divOper :: String -> M ()
-divOper reg = do { pushInstr ["cdq",
-                             "idiv " ++ reg,
-                             "push eax"] }
-modOper :: String -> M ()
-modOper reg = do { pushInstr ["cdq",
-                             "idiv " ++ reg,
-                             "push edx"] }
-
--------------------------- RELATIONS -------------------------------------------
-
-rel :: RelOp -> Type -> Type -> M StmtType
-rel op = case op of
-  LTH -> relOperInt "jl"
-  LE -> relOperInt "jle"
-  GTH -> relOperInt "jg"
-  GE -> relOperInt "jge"
-  EQU -> relOperEq "je"
-  NE -> relOperEq "jne"
-
-relOperInt :: String -> Type -> Type -> M StmtType
-relOperInt = relOper (\x y -> x == Int && y == Int) "Int"
-
-relOperEq :: String -> Type -> Type -> M StmtType
-relOperEq = relOper (\x y -> x == y) "each other"
-
-relOper :: (Type -> Type -> Bool) -> String -> String -> Type -> Type -> M StmtType
-relOper cmpExpr msg instr t1 t2 = 
-  do { if cmpExpr t1 t2
-       then compareInstr instr
-       else do { pushErr ("Type of first expr is " ++ show t1 ++ 
-                          " and type of second one is " ++ show t2 ++ 
-                          ". They are different from " ++ msg ++ "!");
-                 return (Void, NR) } }
-
-compareInstr :: String -> M StmtType
-compareInstr = labeledInstr trueFun Empty falseFun Empty
-
-trueFun :: Stmt -> M StmtType
-trueFun _ = do { t <- compileExpr ELitTrue;
-                 return (t, NR) }
-
-falseFun :: Stmt -> M StmtType
-falseFun _ = do { t <- compileExpr ELitFalse;
-                  return (t, NR) }
---------------------------------------------------------------------------------
+------------------- FOR --------------------------------------------------------
+-- tablica jest na górze stosu
+compileFor :: Ident -> Type -> Stmt -> M StmtType
+compileFor vId t stmt = do { l1 <- createLabel;
+                             l2 <- createLabel;
+                             (vars, dvars) <- getVars;
+                             setVars (vars, []);
+                             pushInstr ["; start for"];
+                             compileStmt (Decl t [NoInit vId]);
+                             pushInstr ["push dword 0", -- 0, array
+                                        l1 ++ ":",
+                                        "pop edx",      -- array
+                                        "inc edx",
+                                        "pop eax",      -- 
+                                        "mov ecx, [eax]", -- długość tablicy
+                                        "push eax",     -- array
+                                        "push edx",     -- licznik na przyszłą kolejkę, array
+                                        "dec edx",
+                                        "cmp edx, ecx",
+                                        "jge " ++ l2];
+                             var <- getVar vId;
+                             pushInstr ["inc edx",
+                                        "mov ecx, [eax + 4 * edx]",
+                                        "mov " ++ show (posOf var) ++ ", ecx"];
+                             (t2, r2) <- compileStmt stmt;
+                             pushInstr ["jmp " ++ l1,
+                                        l2 ++ ":",
+                                        "pop ecx", -- zdejmujemy licznik
+                                        "pop ecx"]; -- zdejmujemy array
+                             setVars (vars, dvars);
+                             return (t2, r2) }
