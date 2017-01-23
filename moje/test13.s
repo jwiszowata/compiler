@@ -73,12 +73,12 @@ main:
 push ebp
 mov ebp, esp
 sub esp, 28
+push ebx
 mov eax, dword 0
 mov [ebp - 4], eax
 lea eax, [ebp - 4]
 push eax
-push dword 2
-pop eax
+mov eax, dword 2
 push eax
 inc eax
 mov edx, dword 4
@@ -93,13 +93,9 @@ call memset
 add esp, 12
 pop edx
 mov [eax], edx
-push eax
-pop eax
 pop edx
 mov [edx], eax
 lea eax, [ebp - 4]
-push eax
-pop eax
 mov edx, [eax]
 push edx
 ; start for
@@ -120,20 +116,15 @@ inc edx
 mov ecx, [eax + 4 * edx]
 mov [ebp - 8], ecx
 lea eax, [ebp - 8]
-push eax
-pop eax
 mov edx, [eax]
 push edx
 call printInt
 add esp, 4
-push eax
-pop eax
 jmp .main0
 .main1:
 pop ecx
 pop ecx
-push dword 3
-pop eax
+mov eax, dword 3
 push eax
 inc eax
 mov edx, dword 4
@@ -148,12 +139,8 @@ call memset
 add esp, 12
 pop edx
 mov [eax], edx
-push eax
-pop eax
 mov [ebp - 12], eax
 lea eax, [ebp - 12]
-push eax
-pop eax
 mov edx, [eax]
 push edx
 ; start for
@@ -174,125 +161,94 @@ inc edx
 mov ecx, [eax + 4 * edx]
 mov [ebp - 16], ecx
 lea eax, [ebp - 16]
-push eax
-pop eax
 mov edx, [eax]
 push edx
 call printInt
 add esp, 4
-push eax
-pop eax
 jmp .main2
 .main3:
 pop ecx
 pop ecx
-push dword 1
-pop edx
+mov edx, dword 1
 inc edx
-mov eax, [ebp - 4]
+lea eax, [ebp - 4]
+mov eax, [eax]
 lea ecx, [eax + 4 * edx]
 push ecx
-push dword 1
-pop eax
+mov eax, dword 1
 pop edx
 mov [edx], eax
-push dword 1
-pop edx
+mov edx, dword 1
 inc edx
-mov eax, [ebp - 12]
+lea eax, [ebp - 12]
+mov eax, [eax]
 lea ecx, [eax + 4 * edx]
 push ecx
-push dword 2
-pop eax
+mov eax, dword 2
 pop edx
 mov [edx], eax
-push dword 1
-pop edx
+mov edx, dword 1
 inc edx
-mov eax, [ebp - 4]
+lea eax, [ebp - 4]
+mov eax, [eax]
 lea ecx, [eax + 4 * edx]
-push ecx
-pop eax
+mov eax, ecx
 mov edx, [eax]
 push edx
 call printInt
 add esp, 4
-push eax
-pop eax
-push dword 1
-pop edx
+mov edx, dword 1
 inc edx
-mov eax, [ebp - 12]
+lea eax, [ebp - 12]
+mov eax, [eax]
 lea ecx, [eax + 4 * edx]
-push ecx
-pop eax
+mov eax, ecx
 mov edx, [eax]
 push edx
 call printInt
 add esp, 4
-push eax
-pop eax
-push dword 1
-pop edx
+mov edx, dword 1
 inc edx
-mov eax, [ebp - 4]
+lea eax, [ebp - 4]
+mov eax, [eax]
 lea ecx, [eax + 4 * edx]
-push ecx
-pop eax
+mov eax, ecx
 mov edx, [eax]
 push edx
-push dword 1
-pop edx
+mov edx, dword 1
 inc edx
-mov eax, [ebp - 4]
+lea eax, [ebp - 4]
+mov eax, [eax]
 lea ecx, [eax + 4 * edx]
-push ecx
-pop eax
+mov eax, ecx
 mov edx, [eax]
-push edx
-pop edx
 inc edx
-mov eax, [ebp - 12]
+lea eax, [ebp - 12]
+mov eax, [eax]
 lea ecx, [eax + 4 * edx]
-push ecx
-pop eax
+mov eax, ecx
 mov edx, [eax]
-push edx
-pop ecx
+mov ecx, edx
 pop eax
 add eax, ecx
 push eax
 call printInt
 add esp, 4
-push eax
-pop eax
 lea eax, [ebp - 4]
-push eax
-pop ecx
+mov ecx, eax
 mov edx, [ecx]
-push edx
-pop eax
-mov edx, [eax]
-push edx
+mov eax, [edx]
+push eax
 call printInt
 add esp, 4
-push eax
-pop eax
 lea eax, [ebp - 12]
-push eax
-pop ecx
+mov ecx, eax
 mov edx, [ecx]
-push edx
-pop eax
-mov edx, [eax]
-push edx
+mov eax, [edx]
+push eax
 call printInt
 add esp, 4
-push eax
-pop eax
 lea eax, [ebp - 4]
-push eax
-pop eax
 mov edx, [eax]
 push edx
 ; start for
@@ -313,21 +269,15 @@ inc edx
 mov ecx, [eax + 4 * edx]
 mov [ebp - 20], ecx
 lea eax, [ebp - 20]
-push eax
-pop eax
 mov edx, [eax]
 push edx
 call printInt
 add esp, 4
-push eax
-pop eax
 jmp .main4
 .main5:
 pop ecx
 pop ecx
 lea eax, [ebp - 12]
-push eax
-pop eax
 mov edx, [eax]
 push edx
 ; start for
@@ -348,14 +298,10 @@ inc edx
 mov ecx, [eax + 4 * edx]
 mov [ebp - 24], ecx
 lea eax, [ebp - 24]
-push eax
-pop eax
 mov edx, [eax]
 push edx
 call printInt
 add esp, 4
-push eax
-pop eax
 jmp .main6
 .main7:
 pop ecx
@@ -363,24 +309,16 @@ pop ecx
 lea eax, [ebp - 12]
 push eax
 lea eax, [ebp - 4]
-push eax
-pop eax
 mov edx, [eax]
 push edx
 lea eax, [ebp - 12]
-push eax
-pop eax
 mov edx, [eax]
 push edx
 call fun
 add esp, 8
-push eax
-pop eax
 pop edx
 mov [edx], eax
 lea eax, [ebp - 12]
-push eax
-pop eax
 mov edx, [eax]
 push edx
 ; start for
@@ -401,35 +339,28 @@ inc edx
 mov ecx, [eax + 4 * edx]
 mov [ebp - 28], ecx
 lea eax, [ebp - 28]
-push eax
-pop eax
 mov edx, [eax]
 push edx
 call printInt
 add esp, 4
-push eax
-pop eax
 jmp .main8
 .main9:
 pop ecx
 pop ecx
-push dword 0
-pop eax
-leave
-ret
+mov eax, dword 0
+.main.:
+pop ebx
 leave
 ret
 fun:
 push ebp
 mov ebp, esp
 sub esp, 0
+push ebx
 lea eax, [ebp + 12]
-push eax
-pop eax
 mov edx, [eax]
-push edx
-pop eax
-leave
-ret
+mov eax, edx
+.fun.:
+pop ebx
 leave
 ret

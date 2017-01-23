@@ -73,6 +73,7 @@ main:
 push ebp
 mov ebp, esp
 sub esp, 0
+push ebx
 push dword 0
 push dword 1
 call implies
@@ -80,8 +81,6 @@ add esp, 8
 push eax
 call printBool
 add esp, 4
-push eax
-pop eax
 push dword 1
 push dword 0
 call implies
@@ -89,60 +88,39 @@ add esp, 8
 push eax
 call printBool
 add esp, 4
-push eax
-pop eax
-push dword 0
-pop eax
-leave
-ret
+mov eax, dword 0
+.main.:
+pop ebx
 leave
 ret
 implies:
 push ebp
 mov ebp, esp
 sub esp, 0
+push ebx
 lea eax, [ebp + 8]
-push eax
-pop eax
 mov edx, [eax]
 push edx
 call printBool
 add esp, 4
-push eax
-pop eax
 lea eax, [ebp + 12]
-push eax
-pop eax
 mov edx, [eax]
 push edx
 call printBool
 add esp, 4
-push eax
-pop eax
 lea eax, [ebp + 8]
-push eax
-pop eax
 mov edx, [eax]
-push edx
-pop eax
+mov eax, edx
 mov edx, 1
 xor eax, edx
 push eax
 call printBool
 add esp, 4
-push eax
-pop eax
 lea eax, [ebp + 8]
-push eax
-pop eax
 mov edx, [eax]
 push edx
 lea eax, [ebp + 12]
-push eax
-pop eax
 mov edx, [eax]
-push edx
-pop edx
 pop eax
 cmp eax, edx
 je .implies0
@@ -153,33 +131,21 @@ push dword 1
 .implies1:
 call printBool
 add esp, 4
-push eax
-pop eax
 lea eax, [ebp + 8]
-push eax
-pop eax
 mov edx, [eax]
-push edx
-pop eax
+mov eax, edx
 mov edx, 1
 xor eax, edx
 push eax
-push dword 1
-pop edx
+mov edx, dword 1
 pop eax
 cmp eax, edx
 je .implies2
 lea eax, [ebp + 8]
-push eax
-pop eax
 mov edx, [eax]
 push edx
 lea eax, [ebp + 12]
-push eax
-pop eax
 mov edx, [eax]
-push edx
-pop edx
 pop eax
 cmp eax, edx
 je .implies4
@@ -194,33 +160,21 @@ push dword 1
 .implies3:
 call printBool
 add esp, 4
-push eax
-pop eax
 lea eax, [ebp + 8]
-push eax
-pop eax
 mov edx, [eax]
-push edx
-pop eax
+mov eax, edx
 mov edx, 1
 xor eax, edx
 push eax
-push dword 1
-pop edx
+mov edx, dword 1
 pop eax
 cmp eax, edx
 je .implies6
 lea eax, [ebp + 8]
-push eax
-pop eax
 mov edx, [eax]
 push edx
 lea eax, [ebp + 12]
-push eax
-pop eax
 mov edx, [eax]
-push edx
-pop edx
 pop eax
 cmp eax, edx
 je .implies8
@@ -234,36 +188,32 @@ jmp .implies7
 push dword 1
 .implies7:
 pop eax
-leave
-ret
+.implies.:
+pop ebx
 leave
 ret
 printBool:
 push ebp
 mov ebp, esp
 sub esp, 0
+push ebx
 lea eax, [ebp + 8]
-push eax
-pop eax
 mov edx, [eax]
 push edx
-push dword 1
-pop edx
+mov edx, dword 1
 pop eax
 cmp eax, edx
 je .printBool0
 push dword 0
 call printInt
 add esp, 4
-push eax
-pop eax
 jmp .printBool1
 .printBool0:
 push dword 1
 call printInt
 add esp, 4
-push eax
-pop eax
 .printBool1:
+.printBool.:
+pop ebx
 leave
 ret

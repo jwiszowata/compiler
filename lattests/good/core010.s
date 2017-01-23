@@ -73,6 +73,7 @@ main:
 push ebp
 mov ebp, esp
 sub esp, 0
+push ebx
 push dword 5
 call fac
 add esp, 4
@@ -83,14 +84,17 @@ push eax
 pop eax
 push dword 0
 pop eax
+pop ebx
 leave
 ret
+pop ebx
 leave
 ret
 fac:
 push ebp
 mov ebp, esp
 sub esp, 8
+push ebx
 mov eax, dword 0
 mov [ebp - 4], eax
 mov eax, dword 0
@@ -173,7 +177,9 @@ pop eax
 mov edx, [eax]
 push edx
 pop eax
+pop ebx
 leave
 ret
+pop ebx
 leave
 ret

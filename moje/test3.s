@@ -73,47 +73,40 @@ p:
 push ebp
 mov ebp, esp
 sub esp, 0
+push ebx
 lea eax, [ebp + 8]
-push eax
-pop eax
 mov edx, [eax]
 push edx
-push dword 1
-pop edx
+mov edx, dword 1
 pop eax
 cmp eax, edx
 je .p0
-push dword 4
-pop eax
-leave
-ret
+mov eax, dword 4
+jmp .p.
 jmp .p1
 .p0:
-push dword 3
-pop eax
-leave
-ret
+mov eax, dword 3
+jmp .p.
 .p1:
+.p.:
+pop ebx
 leave
 ret
 main:
 push ebp
 mov ebp, esp
 sub esp, 12
-push dword 1
-pop eax
+push ebx
+mov eax, dword 1
 mov [ebp - 4], eax
 mov eax, dword 0
 mov [ebp - 8], eax
 mov eax, dword 0
 mov [ebp - 12], eax
 lea eax, [ebp - 4]
-push eax
-pop eax
 mov edx, [eax]
 push edx
-push dword 1
-pop edx
+mov edx, dword 1
 pop eax
 cmp eax, edx
 je .main0
@@ -122,8 +115,7 @@ jmp .main1
 .main0:
 push dword 1
 .main1:
-push dword 1
-pop edx
+mov edx, dword 1
 pop eax
 cmp eax, edx
 je .main2
@@ -133,11 +125,7 @@ lea eax, [ebp - 8]
 push eax
 push dword 5
 lea eax, [ebp - 4]
-push eax
-pop eax
 mov edx, [eax]
-push edx
-pop edx
 pop eax
 cmp eax, edx
 jg .main4
@@ -148,19 +136,13 @@ push dword 1
 .main5:
 call p
 add esp, 4
-push eax
-pop eax
 pop edx
 mov [edx], eax
 lea eax, [ebp - 12]
 push eax
 push dword 5
 lea eax, [ebp - 4]
-push eax
-pop eax
 mov edx, [eax]
-push edx
-pop edx
 pop eax
 cmp eax, edx
 jl .main6
@@ -171,74 +153,45 @@ push dword 1
 .main7:
 call p
 add esp, 4
-push eax
-pop eax
 pop edx
 mov [edx], eax
 .main3:
 lea eax, [ebp - 4]
-push eax
-pop eax
 mov edx, [eax]
 push edx
 call printInt
 add esp, 4
-push eax
-pop eax
 lea eax, [ebp - 8]
-push eax
-pop eax
 mov edx, [eax]
 push edx
 call printInt
 add esp, 4
-push eax
-pop eax
 lea eax, [ebp - 12]
-push eax
-pop eax
 mov edx, [eax]
 push edx
 call printInt
 add esp, 4
-push eax
-pop eax
 lea eax, [ebp - 8]
-push eax
-pop eax
 mov edx, [eax]
 push edx
 lea eax, [ebp - 12]
-push eax
-pop eax
 mov edx, [eax]
-push edx
-pop ecx
+mov ecx, edx
 pop eax
 add eax, ecx
-push eax
-pop eax
 lea eax, [ebp - 8]
-push eax
-pop eax
 mov edx, [eax]
 push edx
 lea eax, [ebp - 12]
-push eax
-pop eax
 mov edx, [eax]
-push edx
-pop ecx
+mov ecx, edx
 pop eax
 add eax, ecx
 push eax
 call printInt
 add esp, 4
-push eax
-pop eax
-push dword 0
-pop eax
-leave
-ret
+mov eax, dword 0
+.main.:
+pop ebx
 leave
 ret

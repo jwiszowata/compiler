@@ -4,11 +4,8 @@ class list {
 }
 
 int main() {
-  list l = new list;
-  list m = cons(2, l);
-  //list l = fromTo(1,50);
-  //printInt(length(fromTo(1,50)));
-  //printInt(length2(fromTo(1,100)));
+  printInt(length(fromTo(1,50)));
+  printInt(length2(fromTo(1,100)));
   return 0;
 }
 
@@ -20,9 +17,7 @@ list cons (int x, list xs) {
   list n;
   n = new list;
   n.elem = x;
-  list c;
-  c = xs;
-  //n.next = xs;
+  n.next = xs;
   return n;
 }
 

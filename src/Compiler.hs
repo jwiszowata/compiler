@@ -4,6 +4,7 @@ import Utils
 import Errors
 import DefaultFunctions
 import ExprCompilation
+import Optimize
 
 -------------------- KOMPILACJA PROGRAMU ---------------------------------------
 -- [compileProgram] bierze Program i zwraca listę instrukcji nasmowych w postaci
@@ -13,35 +14,46 @@ compileProgram (Program topDefs) =
     let pos = Pos (-4)
         startLabel = (0, Ident "")
         funs = pushDefaultFuns
-        (defFuns, defSts, bMain, bOther, bVoid) = pushDefinitions topDefs funs [] False
-        (strings, _, _, _, _, _, _, _, errorMsg, program) = 
-          unStOut (compileDefs topDefs []) defFuns defSts ([], []) pos startLabel [] 0 ""
-    in case (bMain, bOther, bVoid, errorMsg /= "") of
-       (False, _, _, _) -> mainFunErr
-       (_, True, _, _) -> dubFunNameErr -- TODO 3 rodzaje błędów!
-       (_, _, True, _) -> voidArgErr
-       (_, _, _, True) -> [errorMsg]
-       _ -> pushDefaults strings ++ program
+        (mthDefs, defFuns, defSts, bMain, bOther, bVoid) = pushDefinitions topDefs funs [] False []
+        (soF, _, _, _, _, _, _, _, errorMsgF, programF) = 
+          unStOut (compileDefs topDefs []) defFuns defSts ([], []) pos startLabel [] 0 "" --- trzeba zwrócić i przekazać dalej
+        (soM, _, _, _, _, _, _, _, errorMsgM, programM) = 
+          unStOut (compileMthDefs mthDefs soF) defFuns defSts ([], []) pos startLabel soF 0 ""
+    in case (bMain, bOther, bVoid, errorMsgF /= "", errorMsgM /= "") of
+       (False, _, _, _, _) -> mainFunErr
+       (_, True, _, _, _) -> dubFunNameErr
+       (_, _, True, _, _) -> voidArgErr
+       (_, _, _, True, _) -> [errorMsgF]
+       (_, _, _, _, True) -> [errorMsgM]
+       _ -> optimize $ pushDefaults soM ++ programF ++ programM
 
 
-pushDefinitions :: [TopDef] -> Funs -> Structs -> Bool -> (Funs, Structs, Bool, Bool, Bool)
-pushDefinitions [] fs sts bM = (fs, sts, bM, False, False)
-pushDefinitions (def:defs) fs sts bM = 
-  let (fs1, sts1, bM1, bO1, bV1) = pushDefinition def fs sts bM
+pushDefinitions :: [TopDef] -> Funs -> Structs -> Bool -> MthTypes -> 
+                                  (MthTypes, Funs, Structs, Bool, Bool, Bool)
+pushDefinitions [] fs sts bM fd = (fd, fs, sts, bM, False, False)
+pushDefinitions (def:defs) fs sts bM fd = 
+  let (fd1, fs1, sts1, bM1, bO1, bV1) = pushDefinition def fs sts bM fd
   in if bO1 || bV1
-     then (fs1, sts1, bM1, bO1, bV1)
-     else pushDefinitions defs fs1 sts1 bM1
+     then (fd1, fs1, sts1, bM1, bO1, bV1)
+     else pushDefinitions defs fs1 sts1 bM1 fd1
 
-pushDefinition :: TopDef -> Funs -> Structs -> Bool -> (Funs, Structs, Bool, Bool, Bool)
-pushDefinition def funs sts b = case def of 
-  FnDef t id args (Block stmts) -> let (v, isVoid) = pushArgs args
-                                       fun = (t, id, v)
-                                   in (fun:funs, sts, b || (isMainFun fun), isDefinedFun id funs, isVoid)
-  StDef t atts -> let (ats, isVoid) = pushAtts atts
+pushDefinition :: TopDef -> Funs -> Structs -> Bool -> MthTypes -> 
+                                     (MthTypes, Funs, Structs, Bool, Bool, Bool)
+pushDefinition def funs sts b funDefs = case def of 
+  FnDef funDef -> pushFunDefinition funDef funs sts b funDefs
+  StDef t atts -> let (ats, aFun, isVoid) = pushAtts atts [] t
                       st = (t, ats)
+                      fd = aFun ++ funDefs
                   in case t of
-                    Clas t1 -> (funs, st:sts, b, isDefinedSt t sts, isVoid)
-                    _ -> (funs, st:sts, b, True, isVoid)
+                    Clas t1 -> (fd, funs, st:sts, b, isDefinedSt t sts, isVoid)
+                    _ -> (funDefs, funs, sts, b, True, False) -- korzysta z leniwości
+
+pushFunDefinition :: FunDef -> Funs -> Structs -> Bool -> MthTypes -> 
+                                     (MthTypes, Funs, Structs, Bool, Bool, Bool)
+pushFunDefinition (FunDef t id args (Block stmts)) funs sts b funDefs =
+  let (v, isVoid) = pushArgs args
+      fun = (t, id, v)
+  in (funDefs, fun:funs, sts, b || (isMainFun fun), isDefinedFun id funs, isVoid)
 
 isMainFun :: Fun -> Bool
 isMainFun fun = let typ = typOF fun == Int
@@ -57,6 +69,24 @@ isDefinedSt :: Type -> Structs -> Bool
 isDefinedSt _ [] = False
 isDefinedSt t (st:sts) = (typOfS st == t) || (isDefinedSt t sts)
 
+pushAtts :: Atts -> MthTypes -> Type -> (Attrs, MthTypes, Bool)
+pushAtts = pushAttributes ([], []) (StPos 0)
+
+pushAttributes:: Attrs -> Pos -> Atts -> MthTypes -> Type -> (Attrs, MthTypes, Bool)
+pushAttributes (ats, mths) _ [] fd _ = ((reverse ats, mths), fd, False)
+pushAttributes (ats, mths) pos (att:atts) fd t = case att of 
+  Att typ id -> let attr = (typ, id, pos)
+                in if typ == Void
+                   then (([], []), [], True)
+                   else pushAttributes (attr:ats, mths) (nextPos pos) atts fd t
+  Meth (FunDef typ id args block) -> 
+    let (v, isVoid) = pushArgs ((Arg t (Ident "")):args)
+        mthName = makeMthName id t
+        mth = (typ, mthName, v)
+        f = (FunDef typ mthName args block, t)
+    in pushAttributes (ats, mth:mths) pos atts (f:fd) t
+
+
 ---------------- KOMPILACJA DEFINICJI FUNKCJI ----------------------------------
 -- [compileDefs] bierze listę definicji, oraz początkowy stan listy 
 -- "statycznych" Stringów i generuje kod nasmowy dla każdej z funkcji; zwraca 
@@ -70,13 +100,13 @@ compileDefs (def:defs) so = do { fs <- getFuns;
                                  compileDefs defs so1 }
 
 compileDef :: TopDef -> Funs -> Structs -> StrObjs -> M StrObjs
-compileDef (FnDef typ ident args (Block stmts)) funs sts so =
+compileDef (FnDef (FunDef typ ident args (Block stmts))) funs sts so =
   let pos = Pos (-4)
       f = getFunction ident funs
       args = argOF f
       (_, _, _, _, _, _, strings, varsNr, errorMsg, definition) = 
         unStOut (compileFun f stmts) funs sts (args, args) pos (0, ident) so 0 ""
-      str = (addPreamble ident varsNr) $ addEpilogue definition
+      str = (addPreamble ident varsNr) $ addEpilogue ident definition
   in do { if errorMsg /= ""
           then do { pushErr errorMsg;
                     return strings }
@@ -88,10 +118,43 @@ addPreamble :: Ident -> Int -> [String] -> [String]
 addPreamble ident i str = [toStr ident ++ ":", 
                            "push ebp", 
                            "mov ebp, esp",
-                           "sub esp, " ++ show (i * 4)] ++ str
+                           "sub esp, " ++ show (i * 4),
+                           "push ebx"] ++ str
 
-addEpilogue :: [String] -> [String]
-addEpilogue str = str ++ ["leave", "ret"]
+addEpilogue :: Ident -> [String] -> [String]
+addEpilogue ident str = str ++ ["." ++ toStr ident ++ ".:",
+                                "pop ebx", 
+                                "leave", 
+                                "ret"]
+
+---------------- KOMPILACJA DEFINICJI METOD ------------------------------------
+-- [compileMthDefs] bierze listę definicji metod, początkowy stan listy 
+-- "statycznych" Stringów oraz strukture w której są te metody i generuje kod 
+-- nasmowy dla każdej z funkcji; zwraca 
+-- ostateczny stan listy "statycznych" stringów ze wszystkich zdefiniowanych 
+-- funkcji
+compileMthDefs :: MthTypes -> StrObjs -> M StrObjs
+compileMthDefs [] so = do { return so }
+compileMthDefs (def:defs) so = do { fs <- getFuns;
+                                    sts <- getSts;
+                                    so1 <- compileMthDef def fs sts so;
+                                    compileMthDefs defs so1 }
+
+compileMthDef :: MthType -> Funs -> Structs -> StrObjs -> M StrObjs
+compileMthDef ((FunDef typ ident args (Block stmts)), Clas stId) funs sts so =
+  let pos = Pos (-4)
+      st = findStFrom stId sts
+      f = getMthFrom ident st
+      atts = atOfS st
+      args = argOF f
+      (_, _, _, _, _, _, strings, varsNr, errorMsg, definition) = 
+        unStOut (compileFun f stmts) funs sts (atts ++ args, args) pos (0, ident) so 0 ""
+      str = (addPreamble ident varsNr) $ addEpilogue ident definition
+  in do { if errorMsg /= ""
+          then do { pushErr errorMsg;
+                    return strings }
+          else do { pushInstr str;
+                    return strings } }
 
 ------------ KOMPILACJA FUNKCJI ------------------------------------------------
 -- [compileFun] generowane są nasmowe instrukcje dla kolejnych instrukcji z 
@@ -156,13 +219,13 @@ compileStmt stmt = case stmt of
                     defaultST }
     Ret expr -> do { t <- compileExpr expr;
                      if t /= Void
-                     then do { pushInstr ["pop eax",
-                                          "leave",
-                                          "ret"];
+                     then do { l <- endLabel;
+                               pushInstr ["pop eax",
+                                          "jmp " ++ l];
                                return (t, R) }
                      else retVoidErr }
-    VRet -> do { pushInstr ["leave",
-                            "ret"];
+    VRet -> do { l <- endLabel;
+                 pushInstr ["jmp " ++ l];
                  return (Void, R) }
     Cond expr stmt -> ifTypeCheck expr stmt Empty ifRetST
     CondElse expr stmt1 stmt2 -> ifTypeCheck expr stmt1 stmt2 ifElseRetST

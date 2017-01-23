@@ -73,6 +73,7 @@ main:
 push ebp
 mov ebp, esp
 sub esp, 12
+push ebx
 mov eax, dword 0
 mov [ebp - 4], eax
 mov eax, dword 0
@@ -185,7 +186,9 @@ jmp .main0
 .main3:
 push dword 0
 pop eax
+pop ebx
 leave
 ret
+pop ebx
 leave
 ret

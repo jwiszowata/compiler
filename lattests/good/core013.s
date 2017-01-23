@@ -78,6 +78,7 @@ main:
 push ebp
 mov ebp, esp
 sub esp, 0
+push ebx
 push dword 3
 call malloc
 add esp, 4
@@ -328,14 +329,17 @@ push eax
 pop eax
 push dword 0
 pop eax
+pop ebx
 leave
 ret
+pop ebx
 leave
 ret
 printBool:
 push ebp
 mov ebp, esp
 sub esp, 0
+push ebx
 lea eax, [ebp + 8]
 push eax
 pop eax
@@ -377,14 +381,17 @@ add esp, 4
 push eax
 pop eax
 .printBool1:
+pop ebx
 leave
 ret
+pop ebx
 leave
 ret
 test:
 push ebp
 mov ebp, esp
 sub esp, 0
+push ebx
 lea eax, [ebp + 8]
 push eax
 pop eax
@@ -410,7 +417,9 @@ jmp .test1
 push dword 1
 .test1:
 pop eax
+pop ebx
 leave
 ret
+pop ebx
 leave
 ret

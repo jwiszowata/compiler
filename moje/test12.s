@@ -73,22 +73,18 @@ main:
 push ebp
 mov ebp, esp
 sub esp, 12
+push ebx
 mov eax, emptyStr
 mov [ebp - 4], eax
-push dword 10
-pop eax
+mov eax, dword 10
 mov [ebp - 8], eax
-push dword 1
-pop eax
+mov eax, dword 1
 mov [ebp - 12], eax
 .main0:
 lea eax, [ebp - 8]
-push eax
-pop eax
 mov edx, [eax]
 push edx
-push dword 0
-pop edx
+mov edx, dword 0
 pop eax
 cmp eax, edx
 jg .main1
@@ -104,42 +100,28 @@ je .main3
 lea eax, [ebp - 12]
 push eax
 lea eax, [ebp - 12]
-push eax
-pop eax
 mov edx, [eax]
 push edx
 lea eax, [ebp - 8]
-push eax
-pop eax
 mov edx, [eax]
-push edx
-pop ecx
+mov ecx, edx
 pop eax
 imul eax, ecx
-push eax
-pop eax
 pop edx
 mov [edx], eax
 lea eax, [ebp - 8]
-push eax
-pop eax
 mov edx, [eax]
 dec edx
 mov [eax], edx
 jmp .main0
 .main3:
 lea eax, [ebp - 12]
-push eax
-pop eax
 mov edx, [eax]
 push edx
 call printInt
 add esp, 4
-push eax
-pop eax
-push dword 0
-pop eax
-leave
-ret
+mov eax, dword 0
+.main.:
+pop ebx
 leave
 ret

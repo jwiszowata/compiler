@@ -74,20 +74,24 @@ main:
 push ebp
 mov ebp, esp
 sub esp, 0
+push ebx
 call foo
 add esp, 0
 push eax
 pop eax
 push dword 0
 pop eax
+pop ebx
 leave
 ret
+pop ebx
 leave
 ret
 foo:
 push ebp
 mov ebp, esp
 sub esp, 0
+push ebx
 push dword 4
 call malloc
 add esp, 4
@@ -100,7 +104,9 @@ call printString
 add esp, 4
 push eax
 pop eax
+pop ebx
 leave
 ret
+pop ebx
 leave
 ret

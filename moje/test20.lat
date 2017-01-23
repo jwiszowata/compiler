@@ -1,0 +1,46 @@
+class Nad {
+    Pod p;
+    Pod [] pT;
+    Pod getPod() {
+        return p;
+    }
+    Pod [] getPT(int x) {
+        pT = new Pod [x];
+        int i = 0;
+        printInt(pT.length);
+        while (i < pT.length) {
+            pT[i] = new Pod;
+            pT[i].setX(i);
+            Pod p = pT[i];
+            printInt(p.getX());
+            i++;
+        }
+        return pT;
+    }
+}
+
+class Pod {
+    int x;
+    int getX() {
+        return x;
+    }
+    void setX(int z) {
+        x = z;
+    }
+}
+
+int main() {
+    Nad n = new Nad;
+    Pod [] p = n.getPT(5);
+    printInt(p[2].x);
+    Pod [] p1 = n.pT;
+    printInt(p1[2].x);
+    Pod p2 = n.pT[4];
+    printInt(p2.x);
+    printInt(n.pT[2].x);
+    Nad n1 = new Nad;
+    n1.p = new Pod;
+    int p3 = n1.getPod().x;
+    printInt(p3);
+    return 0;
+}

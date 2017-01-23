@@ -75,6 +75,7 @@ main:
 push ebp
 mov ebp, esp
 sub esp, 4
+push ebx
 push dword 12
 call malloc
 add esp, 4
@@ -86,14 +87,10 @@ add esp, 8
 pop eax
 mov [ebp - 4], eax
 lea eax, [ebp - 4]
-push eax
-pop eax
 mov edx, [eax]
 push edx
 call printString
 add esp, 4
-push eax
-pop eax
 push dword 11
 call malloc
 add esp, 4
@@ -104,11 +101,8 @@ call strcpy
 add esp, 8
 call printString
 add esp, 4
-push eax
-pop eax
-push dword 0
-pop eax
-leave
-ret
+mov eax, dword 0
+.main.:
+pop ebx
 leave
 ret

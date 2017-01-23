@@ -78,6 +78,7 @@ main:
 push ebp
 mov ebp, esp
 sub esp, 8
+push ebx
 push dword 56
 pop eax
 mov [ebp - 4], eax
@@ -338,14 +339,17 @@ push eax
 pop eax
 push dword 0
 pop eax
+pop ebx
 leave
 ret
+pop ebx
 leave
 ret
 printBool:
 push ebp
 mov ebp, esp
 sub esp, 0
+push ebx
 lea eax, [ebp + 8]
 push eax
 pop eax
@@ -368,6 +372,7 @@ call printString
 add esp, 4
 push eax
 pop eax
+pop ebx
 leave
 ret
 jmp .printBool1
@@ -384,8 +389,10 @@ call printString
 add esp, 4
 push eax
 pop eax
+pop ebx
 leave
 ret
 .printBool1:
+pop ebx
 leave
 ret

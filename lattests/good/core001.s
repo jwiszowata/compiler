@@ -77,6 +77,7 @@ main:
 push ebp
 mov ebp, esp
 sub esp, 12
+push ebx
 push dword 10
 call fac
 add esp, 4
@@ -215,14 +216,17 @@ push eax
 pop eax
 push dword 0
 pop eax
+pop ebx
 leave
 ret
+pop ebx
 leave
 ret
 fac:
 push ebp
 mov ebp, esp
 sub esp, 8
+push ebx
 mov eax, dword 0
 mov [ebp - 4], eax
 mov eax, dword 0
@@ -305,14 +309,17 @@ pop eax
 mov edx, [eax]
 push edx
 pop eax
+pop ebx
 leave
 ret
+pop ebx
 leave
 ret
 rfac:
 push ebp
 mov ebp, esp
 sub esp, 0
+push ebx
 lea eax, [ebp + 8]
 push eax
 pop eax
@@ -356,21 +363,25 @@ pop eax
 imul eax, ecx
 push eax
 pop eax
+pop ebx
 leave
 ret
 jmp .rfac3
 .rfac2:
 push dword 1
 pop eax
+pop ebx
 leave
 ret
 .rfac3:
+pop ebx
 leave
 ret
 mfac:
 push ebp
 mov ebp, esp
 sub esp, 0
+push ebx
 lea eax, [ebp + 8]
 push eax
 pop eax
@@ -414,21 +425,25 @@ pop eax
 imul eax, ecx
 push eax
 pop eax
+pop ebx
 leave
 ret
 jmp .mfac3
 .mfac2:
 push dword 1
 pop eax
+pop ebx
 leave
 ret
 .mfac3:
+pop ebx
 leave
 ret
 nfac:
 push ebp
 mov ebp, esp
 sub esp, 0
+push ebx
 lea eax, [ebp + 8]
 push eax
 pop eax
@@ -451,6 +466,7 @@ cmp eax, edx
 je .nfac2
 push dword 1
 pop eax
+pop ebx
 leave
 ret
 jmp .nfac3
@@ -478,15 +494,18 @@ pop eax
 imul eax, ecx
 push eax
 pop eax
+pop ebx
 leave
 ret
 .nfac3:
+pop ebx
 leave
 ret
 ifac:
 push ebp
 mov ebp, esp
 sub esp, 0
+push ebx
 lea eax, [ebp + 8]
 push eax
 pop eax
@@ -497,14 +516,17 @@ call ifac2f
 add esp, 8
 push eax
 pop eax
+pop ebx
 leave
 ret
+pop ebx
 leave
 ret
 ifac2f:
 push ebp
 mov ebp, esp
 sub esp, 4
+push ebx
 lea eax, [ebp + 8]
 push eax
 pop eax
@@ -537,6 +559,7 @@ pop eax
 mov edx, [eax]
 push edx
 pop eax
+pop ebx
 leave
 ret
 .ifac2f3:
@@ -568,6 +591,7 @@ jmp .ifac2f7
 .ifac2f6:
 push dword 1
 pop eax
+pop ebx
 leave
 ret
 .ifac2f7:
@@ -634,14 +658,17 @@ pop eax
 imul eax, ecx
 push eax
 pop eax
+pop ebx
 leave
 ret
+pop ebx
 leave
 ret
 repStr:
 push ebp
 mov ebp, esp
 sub esp, 8
+push ebx
 push dword 1
 call malloc
 add esp, 4
@@ -739,7 +766,9 @@ pop eax
 mov edx, [eax]
 push edx
 pop eax
+pop ebx
 leave
 ret
+pop ebx
 leave
 ret

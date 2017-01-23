@@ -74,6 +74,7 @@ main:
 push ebp
 mov ebp, esp
 sub esp, 16
+push ebx
 push dword 78
 pop eax
 mov [ebp - 4], eax
@@ -223,7 +224,9 @@ push eax
 pop eax
 push dword 0
 pop eax
+pop ebx
 leave
 ret
+pop ebx
 leave
 ret

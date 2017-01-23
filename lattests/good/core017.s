@@ -76,6 +76,7 @@ main:
 push ebp
 mov ebp, esp
 sub esp, 4
+push ebx
 push dword 4
 pop eax
 mov [ebp - 4], eax
@@ -319,14 +320,17 @@ push eax
 pop eax
 push dword 0
 pop eax
+pop ebx
 leave
 ret
+pop ebx
 leave
 ret
 dontCallMe:
 push ebp
 mov ebp, esp
 sub esp, 0
+push ebx
 lea eax, [ebp + 8]
 push eax
 pop eax
@@ -338,14 +342,17 @@ push eax
 pop eax
 push dword 1
 pop eax
+pop ebx
 leave
 ret
+pop ebx
 leave
 ret
 printBool:
 push ebp
 mov ebp, esp
 sub esp, 0
+push ebx
 lea eax, [ebp + 8]
 push eax
 pop eax
@@ -383,14 +390,17 @@ add esp, 4
 push eax
 pop eax
 .printBool1:
+pop ebx
 leave
 ret
+pop ebx
 leave
 ret
 implies:
 push ebp
 mov ebp, esp
 sub esp, 0
+push ebx
 lea eax, [ebp + 8]
 push eax
 pop eax
@@ -429,7 +439,9 @@ jmp .implies1
 push dword 1
 .implies1:
 pop eax
+pop ebx
 leave
 ret
+pop ebx
 leave
 ret

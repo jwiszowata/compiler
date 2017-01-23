@@ -73,98 +73,74 @@ main:
 push ebp
 mov ebp, esp
 sub esp, 12
-push dword 0
-pop eax
+push ebx
+mov eax, dword 0
 mov [ebp - 4], eax
-push dword 1
-pop eax
+mov eax, dword 1
 mov [ebp - 8], eax
 lea eax, [ebp - 4]
-push eax
-pop eax
 mov edx, [eax]
 push edx
 call printBool
 add esp, 4
-push eax
-pop eax
 lea eax, [ebp - 4]
-push eax
-pop eax
 mov edx, [eax]
 push edx
 call printBool
 add esp, 4
-push eax
-pop eax
-push dword 1
-pop eax
+mov eax, dword 1
 mov [ebp - 12], eax
 lea eax, [ebp - 12]
-push eax
-pop eax
 mov edx, [eax]
 push edx
 call printBool
 add esp, 4
-push eax
-pop eax
 lea eax, [ebp - 4]
-push eax
-pop eax
 mov edx, [eax]
 push edx
 call printBool
 add esp, 4
-push eax
-pop eax
-push dword 0
-pop eax
-leave
-ret
+mov eax, dword 0
+.main.:
+pop ebx
 leave
 ret
 printBool:
 push ebp
 mov ebp, esp
 sub esp, 0
+push ebx
 lea eax, [ebp + 8]
-push eax
-pop eax
 mov edx, [eax]
 push edx
-push dword 1
-pop edx
+mov edx, dword 1
 pop eax
 cmp eax, edx
 je .printBool0
 push dword 0
 call print
 add esp, 4
-push eax
-pop eax
 jmp .printBool1
 .printBool0:
 push dword 1
 call print
 add esp, 4
-push eax
-pop eax
 .printBool1:
+.printBool.:
+pop ebx
 leave
 ret
 print:
 push ebp
 mov ebp, esp
 sub esp, 0
+push ebx
 lea eax, [ebp + 8]
-push eax
-pop eax
 mov edx, [eax]
 push edx
 call printInt
 add esp, 4
-push eax
-pop eax
+.print.:
+pop ebx
 leave
 ret

@@ -13,14 +13,6 @@ compileExpr expr = case expr of
                      return Bool }
     ELitFalse -> do { pushInstr ["push dword 0"];
                       return Bool }
-    EApp (App id exprs) -> do { fun <- getFun id;
-                                  if idOF fun /= id
-                                  then noFunErr id
-                                  else do { pushExprs id (reverse exprs) (reverse (argOF fun));
-                                            pushInstr ["call " ++ toStr id];
-                                            pop (length exprs);
-                                            pushInstr ["push eax"];
-                                            return (typOF fun) } }
     EString s -> do { id <- saveStr s;
                       pushInstr (allocStr (length s + 1) id);
                       return Str }
@@ -54,11 +46,13 @@ compileExpr expr = case expr of
 
 --------------------------- ZMIENNA --------------------------------------------
 retAss :: Assign -> M Type
-retAss ass = do { (a, _) <- compileAssign ass;
-                  pushInstr ["pop eax",
-                             "mov edx, [eax]",
-                             "push edx"];
-                  return (typOfA a) }
+retAss ass = do { (a, t) <- compileAssign ass;
+                  case t of
+                    A -> do { pushInstr ["pop eax",
+                                          "mov edx, [eax]",
+                                          "push edx"];
+                               return (typOfA a) }
+                    NA -> do { return (typOfA a) } }
 
 ---------------------- WYWOŁANIE FUNKCJI ---------------------------------------
 pushExprs :: Ident -> [Expr] -> Vars -> M ()
@@ -234,33 +228,38 @@ compileNewExpr newExpr = case newExpr of
 -- wrzuca na stos wskaźnik, pod którym można zapisać wybraną wartość, te 
 -- wyrażenia to >> zmienna << lub >> tablica[expr] <<
 -- zwraca typ wyrażenia i jego nazwę
+-- jeżeli wyrażenie jest [A]ssignable na stosie jest wskaźnik
+-- jeżeli wyrażenie jest [N]ot [A]ssignable na stosie jest wynik
 compileAssign :: Assign -> M AssType
 compileAssign (AList []) = emptyAssignErr
 compileAssign (AList (a:as)) = do { ass <- compileAssignable a;
-                                   compileNextAssignable as ass objInEdx }
-compileAssign (AApp app as) = do { t <- compileExpr (EApp app);
-                                   compileNextAssignable as ((t, defaultI), A) inEdx }
-compileAssign (ANewDot newExpr as) = do { t <- compileNewExpr newExpr;
-                                          compileNextAssignable as ((t, defaultI), A) inEdx }
-compileAssign (ANewArr newExpr expr) = do { t1 <- compileNewExpr newExpr;
-                                            case t1 of
-                                              Array t2 -> do { t <- compileExpr expr;
-                                                               if t == Int
-                                                               then do { pushInstr ["pop edx", -- i
-                                                                                    "inc edx",
-                                                                                    "pop eax", -- array
-                                                                                    "lea ecx, [eax + 4 * edx]",
-                                                                                    "push ecx"];
-                                                                         return ((t1, defaultI), A) }
-                                                               else notIntExprArrErr defaultI t }
-                                              _ -> arrOpErr t1 }
+                                    compileNextAssignable as ass }
+compileAssign (ANewDot newExpr as) = 
+  do { t <- compileNewExpr newExpr;
+       compileNextAssignable as ((t, defaultI, EmptyPos), NA) }
+compileAssign (ANewArr newExpr expr) = 
+  do { t1 <- compileNewExpr newExpr;
+        case t1 of
+          Array t2 -> do { t <- compileExpr expr;
+                           if t == Int
+                           then do { pushInstr ["pop edx", -- i
+                                                "inc edx",
+                                                "pop eax", -- array
+                                                "lea ecx, [eax + 4 * edx]",
+                                                "push ecx"];
+                                     return ((t1, defaultI, EmptyPos), A) }
+                           else notIntExprArrErr defaultI t }
+          _ -> arrOpErr t1 }
 
+-- wołanie bez kropki
+-- Jeżeli jest A to zwraca wskaźnik na obiekt
+-- Jeżeli jest NA to zwraca obiekt
 compileAssignable :: Assignable -> M AssType
 compileAssignable ass = case ass of
   AIdent id -> do { var <- getVar id;
                     pushInstr ["lea eax, " ++ show (posOf var),
                                "push eax"];
-                    return ((typOf var, id), A) }
+                    return ((typOf var, id, EmptyPos), A) }
   AArr id expr -> 
     do { t <- compileExpr expr;
          var <- getVar id;
@@ -268,40 +267,57 @@ compileAssignable ass = case ass of
          Array t1 -> if t == Int
                      then do { pushInstr ["pop edx", -- i
                                           "inc edx",
-                                          "mov eax, " ++ show (posOf var),
+                                          "lea eax, " ++ show (posOf var),
+                                          "mov eax, [eax]",
                                           "lea ecx, [eax + 4 * edx]",
                                           "push ecx"];
-                               return ((t1, id), A) }
+                               return ((t1, id, EmptyPos), A) }
                      else notIntExprArrErr id t
          _ -> notArrVarErr id }
+  AMeth id exprs -> do { fun <- getFun id;
+                         callFunction fun id exprs }
 
-compileNextAssignable :: [Assignable] -> AssType -> [String] -> M AssType
-compileNextAssignable [] at _ = do { return at }
-compileNextAssignable (a:as) ((t,_), _) sEdx = case (a, t) of
+compileNextAssignable :: [Assignable] -> AssType -> M AssType
+compileNextAssignable [] at = do { return at }
+compileNextAssignable (a:as) ((t,_, _), atyp) = 
+  let sEdx = (if atyp == A
+              then objInEdx
+              else inEdx)
+  in case (a, t) of
   (AIdent id, Clas t1) -> do { (a, i) <- getAttr id t1;
                                pushInstr (sEdx ++ ["mov eax, dword " ++ show i,
                                                    "lea ecx, [edx + 4 * eax]",
                                                    "push ecx"]);
-                               compileNextAssignable as (a, A) objInEdx }
-  (AIdent (Ident "length"), Array t1) -> do { if as == []
-                                              then do { pushInstr (sEdx ++ ["push edx"]);
-                                                        return ((Int, Ident "length"), NA) }
-                                              else dotUsageErr }
-  (AArr id expr, Clas t1) -> do { (a, i) <- getAttr id t1;
-                                  case typOfA a of 
-                                    Array t1 -> do { pushInstr (sEdx ++ ["mov ecx, dword " ++ show i,
-                                                                         "mov eax, [edx + 4 * ecx]",
-                                                                         "push eax"]);
-                                                     t <- compileExpr expr; -- expr, array
-                                                     if t == Int
-                                                     then do { pushInstr ["pop edx",
-                                                                          "pop eax",
-                                                                          "inc edx",
-                                                                          "lea ecx, [eax + 4 * edx]",
-                                                                          "push ecx"];
-                                                               compileNextAssignable as ((t1, defaultI), A) objInEdx }
-                                                     else notIntExprArrErr id t }
-                                    _ -> notArrVarErr id }
+                               compileNextAssignable as (a, A) }
+  (AIdent (Ident "length"), Array t1) -> 
+    do { if as == []
+         then do { pushInstr (sEdx ++ ["mov eax, [edx]",
+                                       "push eax"]);
+                   return ((Int, Ident "length", EmptyPos), NA) }
+         else dotUsageErr }
+  (AArr id expr, Clas t1) -> 
+    do { (a, i) <- getAttr id t1;
+          case typOfA a of 
+            Array t1 -> 
+                let att = (t1, defaultI, EmptyPos)
+                in do { pushInstr (sEdx ++ ["mov ecx, dword " ++ show i,
+                                            "mov eax, [edx + 4 * ecx]",
+                                            "push eax"]);
+                     t <- compileExpr expr; -- expr, array
+                     if t == Int
+                     then do { pushInstr ["pop edx",
+                                          "pop eax",
+                                          "inc edx",
+                                          "lea ecx, [eax + 4 * edx]",
+                                          "push ecx"];
+                               compileNextAssignable as (att, A) }
+                     else notIntExprArrErr id t }
+            _ -> notArrVarErr id }
+  (AMeth id exprs, Clas t1) ->
+      let mthName = makeMthName id (Clas t1)
+      in do { fun <- getMth mthName t1;
+              ass <- callMethod fun mthName exprs;
+              compileNextAssignable as ass }
   _ -> dotUsageErr
 
 objInEdx :: [String]
@@ -309,3 +325,29 @@ objInEdx = ["pop ecx", "mov edx, [ecx]"]
 
 inEdx :: [String]
 inEdx = ["pop edx"]
+
+callFunction :: Fun -> Ident -> [Expr] -> M AssType
+callFunction fun fid exprs = 
+  do { if idOF fun /= fid
+       then do { noFunErr fid;
+                 defaultAT }
+       else do { pushExprs (idOF fun) (reverse exprs) (reverse (argOF fun));
+                 pushInstr ["call " ++ toStr (idOF fun)];
+                 pop (length exprs);
+                 pushInstr ["push eax"];
+                 return ((typOF fun, (idOF fun), EmptyPos), NA) } }
+
+callMethod :: Fun -> Ident -> [Expr] -> M AssType
+callMethod fun fid exprs = 
+  do { if idOF fun /= fid
+       then do { noFunErr fid;
+                 defaultAT }
+       else let arg:args = argOF fun
+            in do { pushInstr ["pop ebx",
+                               "mov ebx, [ebx]"];
+                     pushExprs (idOF fun) (reverse exprs) (reverse args);
+                     pushInstr ["push ebx",
+                                "call " ++ toStr (idOF fun)];
+                     pop (length (argOF fun));
+                     pushInstr ["push eax"];
+                     return ((typOF fun, (idOF fun), EmptyPos), NA) } }

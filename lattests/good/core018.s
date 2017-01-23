@@ -73,6 +73,7 @@ main:
 push ebp
 mov ebp, esp
 sub esp, 12
+push ebx
 call readInt
 add esp, 0
 push eax
@@ -149,7 +150,9 @@ push eax
 pop eax
 push dword 0
 pop eax
+pop ebx
 leave
 ret
+pop ebx
 leave
 ret

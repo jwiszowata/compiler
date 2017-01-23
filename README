@@ -2,7 +2,7 @@
 
 make zrobiony w korzeniu projektu kompiluje wszystkie zamieszczone pliki i tworzy 
 kompilator latc_x86. Po ruchomieniu latc_x86 z plikiem .lat tworzony jest kod 
-asemblerowy x86 w składni nasmowej. Zapisywany jest on do pliku .asm, 
+asemblerowy x86 w składni nasmowej. Zapisywany jest on do pliku .s, 
 który następnie przy pomocy gcc jest kompilowany do pliku wykonywalnego.
 
 *** Używane narzędzia i biblioteki:
@@ -17,7 +17,12 @@ który następnie przy pomocy gcc jest kompilowany do pliku wykonywalnego.
 
 -> parser: bnfc
 
-*** Zaimplementowane rozszerzenia: brak
+*** Zaimplementowane rozszerzenia: 
+-> tablice
+-> struktury
+-> obiekty - struktury z metodami, nie ma dziedziczenia itp
+
+-> optymalizacja użycia stosu i skoków
 
 *** Struktura katalogów projektu:
 
@@ -31,6 +36,7 @@ który następnie przy pomocy gcc jest kompilowany do pliku wykonywalnego.
         --> Errors.hs           (funkcje dla błędów)
         --> ExprCompilation.hs  (kompilacja wyrażeń)
         --> Utils.hs            (funkcje pomocnicze)
+        --> Optimize.hs         (funkcje optymalizujące)
         --> Latte.cf            (gramatyka w bnfc)
     
 

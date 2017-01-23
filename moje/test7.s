@@ -73,13 +73,12 @@ main:
 push ebp
 mov ebp, esp
 sub esp, 0
-push dword 0
-pop eax
+push ebx
+mov eax, dword 0
 mov edx, 1
 xor eax, edx
 push eax
-push dword 1
-pop edx
+mov edx, dword 1
 pop eax
 cmp eax, edx
 je .main0
@@ -92,13 +91,11 @@ jmp .main1
 push dword 0
 .main1:
 pop eax
-push dword 1
-pop eax
+mov eax, dword 1
 mov edx, 1
 xor eax, edx
 push eax
-push dword 1
-pop edx
+mov edx, dword 1
 pop eax
 cmp eax, edx
 je .main2
@@ -112,8 +109,7 @@ push dword 0
 .main3:
 pop eax
 push dword 0
-push dword 1
-pop edx
+mov edx, dword 1
 pop eax
 cmp eax, edx
 je .main4
@@ -127,8 +123,7 @@ push dword 1
 .main5:
 pop eax
 push dword 1
-push dword 1
-pop edx
+mov edx, dword 1
 pop eax
 cmp eax, edx
 je .main6
@@ -141,28 +136,23 @@ jmp .main7
 push dword 1
 .main7:
 pop eax
-push dword 0
-pop eax
-leave
-ret
+mov eax, dword 0
+.main.:
+pop ebx
 leave
 ret
 retTrue:
 push ebp
 mov ebp, esp
 sub esp, 0
+push ebx
 lea eax, [ebp + 8]
-push eax
-pop eax
 mov edx, [eax]
 push edx
 call printInt
 add esp, 4
-push eax
-pop eax
-push dword 1
-pop eax
-leave
-ret
+mov eax, dword 1
+.retTrue.:
+pop ebx
 leave
 ret

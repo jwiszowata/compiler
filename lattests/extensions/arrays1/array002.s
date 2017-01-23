@@ -73,14 +73,13 @@ doubleArray:
 push ebp
 mov ebp, esp
 sub esp, 12
+push ebx
 lea eax, [ebp + 8]
 push eax
 pop ecx
 mov edx, [ecx]
-push edx
-pop eax
-mov edx, [eax]
-push edx
+mov eax, [edx]
+push eax
 pop eax
 push eax
 inc eax
@@ -131,7 +130,8 @@ mov edx, [eax]
 push edx
 pop edx
 inc edx
-mov eax, [ebp - 4]
+lea eax, [ebp - 4]
+mov eax, [eax]
 lea ecx, [eax + 4 * edx]
 push ecx
 push dword 2
@@ -163,18 +163,22 @@ pop eax
 mov edx, [eax]
 push edx
 pop eax
+pop ebx
 leave
 ret
+pop ebx
 leave
 ret
 shiftLeft:
 push ebp
 mov ebp, esp
 sub esp, 8
+push ebx
 push dword 0
 pop edx
 inc edx
-mov eax, [ebp + 8]
+lea eax, [ebp + 8]
+mov eax, [eax]
 lea ecx, [eax + 4 * edx]
 push ecx
 pop eax
@@ -195,10 +199,8 @@ lea eax, [ebp + 8]
 push eax
 pop ecx
 mov edx, [ecx]
-push edx
-pop eax
-mov edx, [eax]
-push edx
+mov eax, [edx]
+push eax
 push dword 1
 pop ecx
 pop eax
@@ -224,7 +226,8 @@ mov edx, [eax]
 push edx
 pop edx
 inc edx
-mov eax, [ebp + 8]
+lea eax, [ebp + 8]
+mov eax, [eax]
 lea ecx, [eax + 4 * edx]
 push ecx
 lea eax, [ebp - 8]
@@ -239,7 +242,8 @@ add eax, ecx
 push eax
 pop edx
 inc edx
-mov eax, [ebp + 8]
+lea eax, [ebp + 8]
+mov eax, [eax]
 lea ecx, [eax + 4 * edx]
 push ecx
 pop eax
@@ -260,10 +264,8 @@ lea eax, [ebp + 8]
 push eax
 pop ecx
 mov edx, [ecx]
-push edx
-pop eax
-mov edx, [eax]
-push edx
+mov eax, [edx]
+push eax
 push dword 1
 pop ecx
 pop eax
@@ -271,7 +273,8 @@ sub eax, ecx
 push eax
 pop edx
 inc edx
-mov eax, [ebp + 8]
+lea eax, [ebp + 8]
+mov eax, [eax]
 lea ecx, [eax + 4 * edx]
 push ecx
 lea eax, [ebp - 4]
@@ -282,14 +285,17 @@ push edx
 pop eax
 pop edx
 mov [edx], eax
+pop ebx
 leave
 ret
+pop ebx
 leave
 ret
 scalProd:
 push ebp
 mov ebp, esp
 sub esp, 8
+push ebx
 push dword 0
 pop eax
 mov [ebp - 4], eax
@@ -306,10 +312,8 @@ lea eax, [ebp + 8]
 push eax
 pop ecx
 mov edx, [ecx]
-push edx
-pop eax
-mov edx, [eax]
-push edx
+mov eax, [edx]
+push eax
 pop edx
 pop eax
 cmp eax, edx
@@ -337,7 +341,8 @@ mov edx, [eax]
 push edx
 pop edx
 inc edx
-mov eax, [ebp + 8]
+lea eax, [ebp + 8]
+mov eax, [eax]
 lea ecx, [eax + 4 * edx]
 push ecx
 pop eax
@@ -350,7 +355,8 @@ mov edx, [eax]
 push edx
 pop edx
 inc edx
-mov eax, [ebp + 12]
+lea eax, [ebp + 12]
+mov eax, [eax]
 lea ecx, [eax + 4 * edx]
 push ecx
 pop eax
@@ -381,14 +387,17 @@ pop eax
 mov edx, [eax]
 push edx
 pop eax
+pop ebx
 leave
 ret
+pop ebx
 leave
 ret
 main:
 push ebp
 mov ebp, esp
 sub esp, 20
+push ebx
 push dword 5
 pop eax
 push eax
@@ -421,10 +430,8 @@ lea eax, [ebp - 4]
 push eax
 pop ecx
 mov edx, [ecx]
-push edx
-pop eax
-mov edx, [eax]
-push edx
+mov eax, [edx]
+push eax
 pop edx
 pop eax
 cmp eax, edx
@@ -445,7 +452,8 @@ mov edx, [eax]
 push edx
 pop edx
 inc edx
-mov eax, [ebp - 4]
+lea eax, [ebp - 4]
+mov eax, [eax]
 lea ecx, [eax + 4 * edx]
 push ecx
 lea eax, [ebp - 8]
@@ -572,7 +580,9 @@ push eax
 pop eax
 push dword 0
 pop eax
+pop ebx
 leave
 ret
+pop ebx
 leave
 ret

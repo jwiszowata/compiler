@@ -1,6 +1,6 @@
 module Utils(module DataAndTypes,
-             pushArgs, pushAtts, getAttr, getSts, getStSize,
-             pushErr, pushInstr, createLabel, getFuns, saveStr,
+             pushArgs, getAttr, getSts, getStSize, makeMthName, getMth, getMthFrom, nextPos,
+             pushErr, pushInstr, createLabel, getFuns, saveStr, findStFrom, endLabel,
              getVars, getFunction, getFun, setVars, getVar, pushVar, isDeclaredVar,
              labeledInstr, concatStringsStr, allocStr, pushIfInt) where
 
@@ -33,6 +33,11 @@ isDeclaredVar id = StOut (\f st (v, vd) p l so i e ->
 createLabel :: M String
 createLabel = StOut (\f st v p (nr, id) so i e -> 
   ("." ++ toStr id ++ show nr, f, st, v, p, (nr + 1, id), so, i, e, []))
+
+endLabel :: M String
+endLabel = StOut (\f st v p (nr, id) so i e -> 
+  ("." ++ toStr id ++ ".", f, st, v, p, (nr + 1, id), so, i, e, []))
+
 
 getFuns :: M Funs
 getFuns = StOut (\f st v p l so i e -> (f, f, st, v, p, l, so, i, e, []))
@@ -68,21 +73,33 @@ getAttrib idA idS = StOut (\f st v p l s i e ->
 
 findSt :: Ident -> M Struct
 findSt idS = StOut (\f st v p l s i e -> (findStFrom idS st, f, st, v, p, l, s, i, e, []))
+
+getMth :: Ident -> Ident -> M Fun
+getMth idM idS = StOut (\f st v p l s i e -> 
+  (getMthFrom idM (findStFrom idS st), f, st, v, p, l, s, i, e, []))
 --------------------------------------------------------------------------------
 
 findStFrom :: Ident -> Structs -> Struct
-findStFrom _ [] = (Clas (Ident ""), [])
+findStFrom _ [] = (Clas (Ident ""), ([],[]))
 findStFrom idS (st:sts)
   | idS == idOfS st = st
   | otherwise = findStFrom idS sts
 
-getAttri :: Ident -> Ident -> Structs -> (Attr, Int)
-getAttri idA idS ((Clas id, ats):sts)
-  | idS == id = getAttribute idA ats 0
-  | otherwise = getAttri idA idS sts
+getMthFrom :: Ident -> Struct -> Fun
+getMthFrom idM (_, (_, mths)) = getMethod idM mths
 
-getAttribute :: Ident -> Attrs -> Int -> (Attr, Int)
-getAttribute _ [] _ = ((Void, Ident ""), -1)
+getMethod :: Ident -> Funs -> Fun
+getMethod _ [] = (Void, defaultI, [])
+getMethod idM (f:fs)
+  | idM == idOF f = f
+  | otherwise = getMethod idM fs
+
+getAttri :: Ident -> Ident -> Structs -> (Attr, Int)
+getAttri idA idS st = let (_,(ats,_)) = findStFrom idS st
+                      in getAttribute idA ats 0
+
+getAttribute :: Ident -> [Attr] -> Int -> (Attr, Int)
+getAttribute _ [] _ = ((Void, Ident "", EmptyPos), -1)
 getAttribute idA (at:ats) n
   | idA == idOfA at = (at, n)
   | otherwise = getAttribute idA ats (n+1)
@@ -95,10 +112,12 @@ setPos (t, id, _) p = (t, id, p)
 nextPos :: Pos -> Pos
 nextPos EmptyPos = EmptyPos
 nextPos (Pos i) = Pos (i - 4)
+nextPos (StPos i) = StPos (i + 1)
 
 nextUpPos :: Pos -> Pos
 nextUpPos EmptyPos = EmptyPos
 nextUpPos (Pos p) = Pos (p + 4)
+nextUpPos (StPos i) = StPos (i + 1)
 
 getVariable :: Ident -> Vars -> Var
 getVariable ident [] = (Int, Ident "", EmptyPos)
@@ -158,32 +177,6 @@ isEmpty [] = True
 isEmpty _ = False
 
 --------------------------------------------------------------------------------
--- [pushArgs]
-pushArgs :: [Arg] -> (Vars, Bool)
-pushArgs args = pushArguments args (Pos 8) []
-
-pushArguments :: [Arg] -> Pos -> Vars -> (Vars, Bool)
-pushArguments [] _ vars = (reverse vars, False)
-pushArguments ((Arg typ id):args) pos vars = 
-  let var = (typ, id, pos)
-  in if typ == Void
-     then ([], True)
-     else pushArguments args (nextUpPos pos) (var:vars)
-
---------------------------------------------------------------------------------
--- [pushAtts]
-pushAtts :: [Att] -> (Attrs, Bool)
-pushAtts atts = pushAttributes atts []
-
-pushAttributes:: [Att] -> Attrs -> (Attrs, Bool)
-pushAttributes [] ats = (reverse ats, False)
-pushAttributes ((Att typ id):atts) ats = 
-  let attr = (typ, id)
-  in if typ == Void
-     then ([], True)
-     else pushAttributes atts (attr:ats)
-
---------------------------------------------------------------------------------
 
 concatStringsStr :: String -> [String]
 concatStringsStr reg = ["push eax",     -- a
@@ -239,9 +232,28 @@ getAttr :: Ident -> Ident -> M (Attr, Int)
 getAttr idA idS = do { (a, i) <- getAttrib idA idS;
                        if i == (-1)
                        then do { noAttrErr idA idS;
-                                 return ((Void, Ident ""), -1) }
+                                 return ((Void, Ident "", EmptyPos), -1) }
                        else return (a, i) }
 
 getStSize :: Ident -> M Int
 getStSize idS = do { st <- findSt idS;
                      return (length (atOfS st)) }
+
+--------------------------------------------------------------------------------
+-- [pushArgs]
+pushArgs :: [Arg] -> (Vars, Bool)
+pushArgs args = pushArguments args (Pos 8) []
+
+pushArguments :: [Arg] -> Pos -> Vars -> (Vars, Bool)
+pushArguments [] _ vars = (reverse vars, False)
+pushArguments ((Arg typ id):args) pos vars = 
+  let var = (typ, id, pos)
+  in if typ == Void
+     then ([], True)
+     else pushArguments args (nextUpPos pos) (var:vars)
+
+--------------------------------------------------------------------------------
+
+makeMthName :: Ident -> Type -> Ident
+makeMthName (Ident fName) (Clas (Ident cName)) = Ident (cName ++ "." ++ fName)
+makeMthName _ _ = error ("Try of generating method for not Class object!")

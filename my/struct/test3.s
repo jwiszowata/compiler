@@ -74,6 +74,7 @@ assert:
 push ebp
 mov ebp, esp
 sub esp, 0
+push ebx
 lea eax, [ebp + 8]
 push eax
 pop eax
@@ -103,12 +104,14 @@ add esp, 4
 push eax
 pop eax
 .assert1:
+pop ebx
 leave
 ret
 inc:
 push ebp
 mov ebp, esp
 sub esp, 0
+push ebx
 lea eax, [ebp + 8]
 push eax
 pop ecx
@@ -131,14 +134,17 @@ pop eax
 mov edx, [eax]
 push edx
 pop eax
+pop ebx
 leave
 ret
+pop ebx
 leave
 ret
 inc2:
 push ebp
 mov ebp, esp
 sub esp, 0
+push ebx
 lea eax, [ebp + 8]
 push eax
 pop ecx
@@ -156,14 +162,17 @@ pop eax
 mov edx, [eax]
 push edx
 pop eax
+pop ebx
 leave
 ret
+pop ebx
 leave
 ret
 main:
 push ebp
 mov ebp, esp
 sub esp, 4
+push ebx
 mov eax, dword 0
 mov [ebp - 4], eax
 lea eax, [ebp - 4]
@@ -490,7 +499,9 @@ push eax
 pop eax
 push dword 0
 pop eax
+pop ebx
 leave
 ret
+pop ebx
 leave
 ret

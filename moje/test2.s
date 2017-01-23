@@ -73,51 +73,42 @@ inc:
 push ebp
 mov ebp, esp
 sub esp, 0
+push ebx
 lea eax, [ebp + 8]
-push eax
-pop eax
 mov edx, [eax]
 inc edx
 mov [eax], edx
 lea eax, [ebp + 8]
-push eax
-pop eax
 mov edx, [eax]
-push edx
-pop eax
-leave
-ret
+mov eax, edx
+.inc.:
+pop ebx
 leave
 ret
 dec:
 push ebp
 mov ebp, esp
 sub esp, 0
+push ebx
 lea eax, [ebp + 8]
-push eax
-pop eax
 mov edx, [eax]
 dec edx
 mov [eax], edx
 lea eax, [ebp + 8]
-push eax
-pop eax
 mov edx, [eax]
-push edx
-pop eax
-leave
-ret
+mov eax, edx
+.dec.:
+pop ebx
 leave
 ret
 main:
 push ebp
 mov ebp, esp
 sub esp, 4
+push ebx
 push dword 3
 call inc
 add esp, 4
-push eax
-pop eax
 mov [ebp - 4], eax
 push dword 3
 call inc
@@ -125,20 +116,12 @@ add esp, 4
 push eax
 call printInt
 add esp, 4
-push eax
-pop eax
 lea eax, [ebp - 4]
-push eax
-pop eax
 mov edx, [eax]
 push edx
 call printInt
 add esp, 4
-push eax
-pop eax
 lea eax, [ebp - 4]
-push eax
-pop eax
 mov edx, [eax]
 push edx
 call inc
@@ -146,11 +129,7 @@ add esp, 4
 push eax
 call printInt
 add esp, 4
-push eax
-pop eax
 lea eax, [ebp - 4]
-push eax
-pop eax
 mov edx, [eax]
 push edx
 call dec
@@ -158,29 +137,20 @@ add esp, 4
 push eax
 call printInt
 add esp, 4
-push eax
-pop eax
 lea eax, [ebp - 4]
 push eax
 push dword 6
 call dec
 add esp, 4
-push eax
-pop eax
 pop edx
 mov [edx], eax
 lea eax, [ebp - 4]
-push eax
-pop eax
 mov edx, [eax]
 push edx
 call printInt
 add esp, 4
-push eax
-pop eax
-push dword 0
-pop eax
-leave
-ret
+mov eax, dword 0
+.main.:
+pop ebx
 leave
 ret

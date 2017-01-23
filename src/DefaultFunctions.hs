@@ -121,4 +121,3 @@ pushDefaultFuns = let arg1 = (Int, Ident "arg1", EmptyPos)
                       f4 = (Int, Ident "readInt", [])
                       f5 = (Str, Ident "readString", [])
                   in [f1, f2, f3, f4, f5]
-

@@ -72,61 +72,55 @@ ret
 main:
 push ebp
 mov ebp, esp
-sub esp, 8
-mov eax, 2
-mov edx, 4
-imul edx
-push eax
-push eax
-call malloc
-add esp, 4
-push dword 0
-push eax
-call memset
-add esp, 12
-push eax
-pop eax
-mov [ebp - 4], eax
-lea eax, [ebp - 4]
-push eax
-pop eax
-mov edx, [eax]
-push edx
-push dword 2
-call cons
+sub esp, 0
+push ebx
+push dword 50
+push dword 1
+call fromTo
 add esp, 8
 push eax
-pop eax
-mov [ebp - 8], eax
-push dword 0
-pop eax
-leave
-ret
+call length
+add esp, 4
+push eax
+call printInt
+add esp, 4
+push dword 100
+push dword 1
+call fromTo
+add esp, 8
+push eax
+call length2
+add esp, 4
+push eax
+call printInt
+add esp, 4
+mov eax, dword 0
+.main.:
+pop ebx
 leave
 ret
 head:
 push ebp
 mov ebp, esp
 sub esp, 0
+push ebx
 lea eax, [ebp + 8]
-push eax
-pop ecx
+mov ecx, eax
 mov edx, [ecx]
 mov eax, dword 0
 lea ecx, [edx + 4 * eax]
-push ecx
-pop eax
+mov eax, ecx
 mov edx, [eax]
-push edx
-pop eax
-leave
-ret
+mov eax, edx
+.head.:
+pop ebx
 leave
 ret
 cons:
 push ebp
 mov ebp, esp
-sub esp, 8
+sub esp, 4
+push ebx
 mov eax, dword 0
 mov [ebp - 4], eax
 lea eax, [ebp - 4]
@@ -142,58 +136,46 @@ push dword 0
 push eax
 call memset
 add esp, 12
-push eax
-pop eax
 pop edx
 mov [edx], eax
 lea eax, [ebp - 4]
-push eax
-pop ecx
+mov ecx, eax
 mov edx, [ecx]
 mov eax, dword 0
 lea ecx, [edx + 4 * eax]
 push ecx
 lea eax, [ebp + 8]
-push eax
-pop eax
 mov edx, [eax]
-push edx
-pop eax
-pop edx
-mov [edx], eax
-mov eax, dword 0
-mov [ebp - 8], eax
-lea eax, [ebp - 8]
-push eax
-lea eax, [ebp + 12]
-push eax
-pop eax
-mov edx, [eax]
-push edx
-pop eax
+mov eax, edx
 pop edx
 mov [edx], eax
 lea eax, [ebp - 4]
-push eax
-pop eax
+mov ecx, eax
+mov edx, [ecx]
+mov eax, dword 1
+lea ecx, [edx + 4 * eax]
+push ecx
+lea eax, [ebp + 12]
 mov edx, [eax]
-push edx
-pop eax
-leave
-ret
+mov eax, edx
+pop edx
+mov [edx], eax
+lea eax, [ebp - 4]
+mov edx, [eax]
+mov eax, edx
+.cons.:
+pop ebx
 leave
 ret
 length:
 push ebp
 mov ebp, esp
 sub esp, 0
+push ebx
 lea eax, [ebp + 8]
-push eax
-pop eax
 mov edx, [eax]
 push edx
-push dword 0
-pop edx
+mov edx, dword 0
 pop eax
 cmp eax, edx
 je .length0
@@ -202,56 +184,44 @@ jmp .length1
 .length0:
 push dword 1
 .length1:
-push dword 1
-pop edx
+mov edx, dword 1
 pop eax
 cmp eax, edx
 je .length2
 push dword 1
 lea eax, [ebp + 8]
-push eax
-pop ecx
+mov ecx, eax
 mov edx, [ecx]
 mov eax, dword 1
 lea ecx, [edx + 4 * eax]
-push ecx
-pop eax
+mov eax, ecx
 mov edx, [eax]
 push edx
 call length
 add esp, 4
-push eax
-pop ecx
+mov ecx, eax
 pop eax
 add eax, ecx
-push eax
-pop eax
-leave
-ret
+jmp .length.
 jmp .length3
 .length2:
-push dword 0
-pop eax
-leave
-ret
+mov eax, dword 0
+jmp .length.
 .length3:
+.length.:
+pop ebx
 leave
 ret
 fromTo:
 push ebp
 mov ebp, esp
 sub esp, 0
+push ebx
 lea eax, [ebp + 8]
-push eax
-pop eax
 mov edx, [eax]
 push edx
 lea eax, [ebp + 12]
-push eax
-pop eax
 mov edx, [eax]
-push edx
-pop edx
 pop eax
 cmp eax, edx
 jg .fromTo0
@@ -260,23 +230,17 @@ jmp .fromTo1
 .fromTo0:
 push dword 1
 .fromTo1:
-push dword 1
-pop edx
+mov edx, dword 1
 pop eax
 cmp eax, edx
 je .fromTo2
 lea eax, [ebp + 12]
-push eax
-pop eax
 mov edx, [eax]
 push edx
 lea eax, [ebp + 8]
-push eax
-pop eax
 mov edx, [eax]
 push edx
-push dword 1
-pop ecx
+mov ecx, dword 1
 pop eax
 add eax, ecx
 push eax
@@ -284,40 +248,32 @@ call fromTo
 add esp, 8
 push eax
 lea eax, [ebp + 8]
-push eax
-pop eax
 mov edx, [eax]
 push edx
 call cons
 add esp, 8
-push eax
-pop eax
-leave
-ret
+jmp .fromTo.
 jmp .fromTo3
 .fromTo2:
-push dword 0
-pop eax
-leave
-ret
+mov eax, dword 0
+jmp .fromTo.
 .fromTo3:
+.fromTo.:
+pop ebx
 leave
 ret
 length2:
 push ebp
 mov ebp, esp
 sub esp, 4
-push dword 0
-pop eax
+push ebx
+mov eax, dword 0
 mov [ebp - 4], eax
 .length20:
 lea eax, [ebp + 8]
-push eax
-pop eax
 mov edx, [eax]
 push edx
-push dword 0
-pop edx
+mov edx, dword 0
 pop eax
 cmp eax, edx
 jne .length21
@@ -331,35 +287,27 @@ mov edx, dword 0
 cmp edx, eax
 je .length23
 lea eax, [ebp - 4]
-push eax
-pop eax
 mov edx, [eax]
 inc edx
 mov [eax], edx
 lea eax, [ebp + 8]
 push eax
 lea eax, [ebp + 8]
-push eax
-pop ecx
+mov ecx, eax
 mov edx, [ecx]
 mov eax, dword 1
 lea ecx, [edx + 4 * eax]
-push ecx
-pop eax
+mov eax, ecx
 mov edx, [eax]
-push edx
-pop eax
+mov eax, edx
 pop edx
 mov [edx], eax
 jmp .length20
 .length23:
 lea eax, [ebp - 4]
-push eax
-pop eax
 mov edx, [eax]
-push edx
-pop eax
-leave
-ret
+mov eax, edx
+.length2.:
+pop ebx
 leave
 ret

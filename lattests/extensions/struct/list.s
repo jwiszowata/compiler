@@ -73,6 +73,7 @@ main:
 push ebp
 mov ebp, esp
 sub esp, 0
+push ebx
 push dword 50
 push dword 1
 call fromTo
@@ -99,14 +100,17 @@ push eax
 pop eax
 push dword 0
 pop eax
+pop ebx
 leave
 ret
+pop ebx
 leave
 ret
 head:
 push ebp
 mov ebp, esp
 sub esp, 0
+push ebx
 lea eax, [ebp + 8]
 push eax
 pop ecx
@@ -118,14 +122,17 @@ pop eax
 mov edx, [eax]
 push edx
 pop eax
+pop ebx
 leave
 ret
+pop ebx
 leave
 ret
 cons:
 push ebp
 mov ebp, esp
 sub esp, 4
+push ebx
 mov eax, dword 0
 mov [ebp - 4], eax
 lea eax, [ebp - 4]
@@ -181,14 +188,17 @@ pop eax
 mov edx, [eax]
 push edx
 pop eax
+pop ebx
 leave
 ret
+pop ebx
 leave
 ret
 length:
 push ebp
 mov ebp, esp
 sub esp, 0
+push ebx
 lea eax, [ebp + 8]
 push eax
 pop eax
@@ -228,21 +238,25 @@ pop eax
 add eax, ecx
 push eax
 pop eax
+pop ebx
 leave
 ret
 jmp .length3
 .length2:
 push dword 0
 pop eax
+pop ebx
 leave
 ret
 .length3:
+pop ebx
 leave
 ret
 fromTo:
 push ebp
 mov ebp, esp
 sub esp, 0
+push ebx
 lea eax, [ebp + 8]
 push eax
 pop eax
@@ -294,21 +308,25 @@ call cons
 add esp, 8
 push eax
 pop eax
+pop ebx
 leave
 ret
 jmp .fromTo3
 .fromTo2:
 push dword 0
 pop eax
+pop ebx
 leave
 ret
 .fromTo3:
+pop ebx
 leave
 ret
 length2:
 push ebp
 mov ebp, esp
 sub esp, 4
+push ebx
 push dword 0
 pop eax
 mov [ebp - 4], eax
@@ -361,7 +379,9 @@ pop eax
 mov edx, [eax]
 push edx
 pop eax
+pop ebx
 leave
 ret
+pop ebx
 leave
 ret

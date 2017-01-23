@@ -1,15 +1,16 @@
 module DataAndTypes(module AbsLatte, 
 					M (StOut), unStOut,
-					Pos (Pos, EmptyPos), 
+					Pos (Pos, StPos, EmptyPos), 
 					Var, Vars, 
 					Fun, Funs, 
 					Label, 
 					StrObj, StrObjs, 
-          Attr, Attrs,
+          Attr, Attrs, Atts,
           ATyp (A, NA),
           Struct, Structs,
 					RTyp (R, NR, PR), 
 					StmtType, AssType,
+          MthType, MthTypes,
           typOF, idOF, argOF, 
           typOf, idOf, posOf, 
           typOfS,
@@ -20,13 +21,18 @@ module DataAndTypes(module AbsLatte,
 
 import AbsLatte
 
-data Pos = Pos Int | EmptyPos deriving (Eq)
+data Pos = Pos Int | StPos Int | EmptyPos deriving (Eq)
 
 instance Show (Pos) where
     show (Pos i)
-      | i >= 0 = "[ebp + " ++ show i ++ "]"
+      | i > 0 = "[ebp + " ++ show i ++ "]"
+      | i == 0 = "[ebp]"
       | i < 0 = "[ebp - " ++ show (-i) ++ "]"
     show EmptyPos = ""
+    show (StPos i)
+      | i > 0 = "[ebp + 8]\nmov ecx, [eax]\nlea eax, [ecx + " ++ show (i * 4) ++ "]"
+      | i == 0 = "[ebp + 8]\nmov ecx, [eax]\nlea eax, [ecx]"
+      | i < 0 = "[ebp + 8]\nmov ecx, [eax]\nlea eax, [ecx - " ++ show ((-i) * 4) ++ "]"
 
 type Var = (Type, Ident, Pos)
 type Vars = [Var]
@@ -44,8 +50,10 @@ data RTyp = R | NR | PR deriving (Eq)
 
 type StmtType = (Type, RTyp)
 
-type Attr = (Type, Ident)
-type Attrs = [Attr]
+type Atts = [Att]
+
+type Attr = Var
+type Attrs = (Vars, Funs)
 type Struct = (Type, Attrs)
 type Structs = [Struct]
 
@@ -53,10 +61,12 @@ type Structs = [Struct]
 data ATyp = A | NA deriving (Eq)
 type AssType = (Attr, ATyp)
 
+type MthType = (FunDef, Type)
+type MthTypes = [MthType]
 
 -- State and Output monad
--- Fun          = wszystkie funkcje
--- Structs        = wszystkie zadeklarowane typy/struktury
+-- Funs         = wszystkie funkcje
+-- Structs      = wszystkie zadeklarowane typy/struktury
 -- (Vars, Vars) = (zmienne widoczne, zmienne zadleklarowane w tym bloku)
 -- Pos          = następna pozycja dla zmiennej
 -- Label        = następna wolna labelka
@@ -98,13 +108,16 @@ typOfS :: Struct -> Type
 typOfS (t, _) = t
 
 typOfA :: Attr -> Type
-typOfA (t, _) = t
+typOfA (t, _, _) = t
 
 idOfA :: Attr -> Ident
-idOfA (_, id) = id
+idOfA (_, id, _) = id
 
-atOfS :: Struct -> Attrs
-atOfS (_, a) = a
+atOfS :: Struct -> [Attr]
+atOfS (_, (a, _)) = a
+
+mthOfS :: Struct -> Funs
+mthOfS (_, (_, m)) = m
 
 idOfS :: Struct -> Ident
 idOfS (Clas id, _) = id
@@ -119,7 +132,7 @@ defaultT :: M Type
 defaultT = do { return Void }
 
 defaultAT :: M AssType
-defaultAT = do { return ((Void, defaultI), NA) }
+defaultAT = do { return ((Void, defaultI, EmptyPos), NA) }
 
 defaultI :: Ident
 defaultI = Ident ""

@@ -4,9 +4,11 @@ entrypoints Program ;
 
 Program.   Program ::= [TopDef] ;
 
-FnDef.	   TopDef ::= Type Ident "(" [Arg] ")" Block ;
+FunDef.	   FunDef ::= Type Ident "(" [Arg] ")" Block ;
 
-StDef. TopDef ::= "class" Type "{" [Att] "}" ;
+FnDef.     TopDef ::= FunDef ;
+
+StDef.     TopDef ::= "class" Type "{" [Att] "}" ;
 
 separator nonempty TopDef "" ;
 
@@ -16,9 +18,9 @@ separator  Arg "," ;
 
 Att.     Att ::= Type Ident ";" ;
 
-separator Att "" ;
+Meth.    Att ::= FunDef ;
 
-App.          App ::= Ident "(" [Expr] ")" ;
+separator Att "" ;
 
 NewArr.       New ::= "new" Type "[" Expr "]" ;
 
@@ -28,9 +30,9 @@ AIdent.       Assignable ::= Ident ;
 
 AArr.         Assignable ::= Ident "[" Expr "]" ;
 
-AList.        Assign ::= [Assignable] ;
+AMeth.        Assignable ::= Ident "(" [Expr] ")" ;
 
-AApp.         Assign ::= App "." [Assignable] ;
+AList.        Assign ::= [Assignable] ;
 
 ANewDot.       Assign ::= "(" New ")" "." [Assignable] ;
 
@@ -103,8 +105,6 @@ ELitInt.   Expr6 ::= Integer ;
 ELitTrue.  Expr6 ::= "true" ;
 
 ELitFalse. Expr6 ::= "false" ;
-
-EApp.      Expr6 ::= App ;
 
 EString.   Expr6 ::= String ;
 

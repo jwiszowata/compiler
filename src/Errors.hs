@@ -11,7 +11,8 @@ mainFunErr :: [String]
 mainFunErr = ["There is no proper main function!"]
 
 dubFunNameErr :: [String]
-dubFunNameErr = ["There are two function with the same name!"]
+dubFunNameErr = ["There are two functions (classes) with the same name or" ++
+                 " basic type was used as a struct name!"]
 
 funTypeErr :: Fun -> Type -> M ()
 funTypeErr f t = pushErr (show (typOF f) ++ " function " ++ toStr (idOF f) ++ 
@@ -39,7 +40,7 @@ condErr t sName = do { pushErr (sName ++ " condition is type " ++
                        defaultST }
 
 notAssErr :: Attr -> M StmtType
-notAssErr (t, id) = do { pushErr ("Try of assigment to not assignable structure " 
+notAssErr (t, id, _) = do { pushErr ("Try of assigment to not assignable structure " 
                                  ++ toStr id ++ " of type " ++ show t ++ "!");
                          defaultST }
 
@@ -51,7 +52,7 @@ assErr t1 t2 id = do { pushErr ("Try of assigment " ++ show t1 ++
 
 initDeclErr :: Type -> Type -> Ident -> M ()
 initDeclErr t t1 id = pushErr ("Type of expresion (" ++ show t1 ++ 
-                     ") is different than type " ++ show t ++ "of variable " ++ 
+                     ") is different than type " ++ show t ++ " of variable " ++ 
                      toStr id ++ "!")
 
 dubVar :: Ident -> M ()

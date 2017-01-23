@@ -32,7 +32,7 @@ doInterpret f (Ok e) =
           then do { showError (unlines str);
                     return () }
           else do { writeFile sfp $ unlines str;
-                    system("nasm -f elf32 \"" ++ sfp ++ "\" -o \"" ++ ofp ++ "\"");
+                    system("nasm -f elf32 -g \"" ++ sfp ++ "\" -o \"" ++ ofp ++ "\"");
                     system("gcc -m32 -o \"" ++ fp ++ "\" \"" ++ ofp ++ "\""); -- on my computer
                     --system("ld -o \"" ++ fp ++ "\" \"" ++ ofp ++ 
                     --"\" -melf_i386 /home/students/inf/PUBLIC/MRJP/lib32/crt?.o" ++ 

@@ -73,6 +73,7 @@ main:
 push ebp
 mov ebp, esp
 sub esp, 0
+push ebx
 push dword 17
 call ev
 add esp, 4
@@ -83,14 +84,17 @@ push eax
 pop eax
 push dword 0
 pop eax
+pop ebx
 leave
 ret
+pop ebx
 leave
 ret
 ev:
 push ebp
 mov ebp, esp
 sub esp, 0
+push ebx
 lea eax, [ebp + 8]
 push eax
 pop eax
@@ -133,12 +137,14 @@ cmp eax, edx
 je .ev6
 push dword 1
 pop eax
+pop ebx
 leave
 ret
 jmp .ev7
 .ev6:
 push dword 0
 pop eax
+pop ebx
 leave
 ret
 .ev7:
@@ -158,8 +164,10 @@ call ev
 add esp, 4
 push eax
 pop eax
+pop ebx
 leave
 ret
 .ev3:
+pop ebx
 leave
 ret
